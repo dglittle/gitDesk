@@ -1,0 +1,543 @@
+<html>
+<head>
+<title>nodesk</title>
+<style>
+
+.fill {
+    width: 100%;
+    height: 100%;
+}
+
+table {
+    border-collapse: collapse;
+}
+th, td {
+    padding: 0;
+}
+
+</style>
+</head>
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="https://raw.github.com/dglittle/gl519/gh-pages/index.js"></script>
+<script src="https://raw.github.com/dglittle/cdn/gh-pages/jquery.timeago.js"></script>
+<script src="https://raw.github.com/dglittle/cdn/gh-pages/jquery.cookie.js"></script>
+<script src="https://raw.github.com/dglittle/cdn/gh-pages/tab.js"></script>
+<script>
+
+function createThrobber() {
+    var d = $("<div />");
+    for (var i = 0; i < 10; i++) {
+        $("<span />").text(".")
+                     .appendTo(d)
+                     .css({ color: i === 0 ? "#000" : "#ccc" });
+    }
+    var timer = setInterval(function () {
+        if ($.contains(document.documentElement, d[0])) {
+            d.find("span:last").prependTo(d);
+        } else {
+            clearInterval(timer);
+        }
+    }, 300);
+    return d;
+}
+
+function onError(msg) {
+    var div = $('<div style="padding:20px"/>')
+    div.append($('<span/>').text(msg || "Oops. Not sure what happened."))
+    div.append($('<br/>'))
+    div.append($('<a href="#"/>').text("Please refresh the page.").click(function (e) {
+        e.preventDefault()
+        location.reload()
+    }))
+    _.dialog(div)
+}
+
+g_rpc_version = $.cookie('rpc_version')
+g_rpc_token = $.cookie('rpc_token')
+g_rpc_timer = null
+g_rpc = []
+
+function rpc() {
+    var args = _.toArray(arguments)
+    var func = args.shift()
+    var cb = typeof(args[args.length - 1]) == "function" ? args.pop() : null
+
+    g_rpc.push({
+        payload : { func : func, args : args },
+        cb : cb
+    })
+    if (g_rpc_timer) clearTimeout(g_rpc_timer)
+    g_rpc_timer = setTimeout(function () {
+        g_rpc_timer = null
+        var save_rpc = g_rpc
+        g_rpc = []
+        $.ajax({
+            url : '/rpc/' + g_rpc_version + '/' + g_rpc_token,
+            type : 'post',
+            data : _.json(_.map(save_rpc, function (e) { return e.payload })),
+            success : function (r) {
+                for (var i = 0; i < r.length; i++) {
+                    if (save_rpc[i].cb)
+                        save_rpc[i].cb(r[i])
+                }
+            },
+            error : function () {
+                onError()
+            }
+        })
+    }, 0)
+}
+
+function drawDropdown(options) {
+    var s = $('<select>')
+    _.each(options, function (o, k) {
+        var oj = $('<option/>').text(k)
+        oj[0].val = o
+        s.append(oj)
+    })
+    s.val = function () {
+        return s.find(':selected')[0].val
+    }
+    return s
+}
+
+function drawTeamDropdown(teams) {
+    var m = {}
+    _.each(teams, function (t) {
+        m[t.name] = t
+    })
+    return drawDropdown(m)
+}
+
+function drawCategoryDropdown() {
+    var m = {}
+    _.each(g_cats, function (v, cat) {
+        _.each(v, function (v) {
+            m[cat + ' / ' + v] = { cat : cat, subcat : v }
+        })
+    })
+    var dd = drawDropdown(m)
+    dd.find(':nth-child(2)').attr('selected', 'selected')
+    dd.width('500px')
+    return dd
+}
+
+function drawPostJob(team) {
+    var div = $('<div/>')
+
+    var cats = drawCategoryDropdown()
+    div.append(cats)
+    div.append('<br/>')
+
+    var price = $('<input type="text"/>')
+    price.width('100px')
+    price.val(20)
+    div.append($('<span/>').text('price: ').css('display', 'inline-block').width('50px'))
+    div.append(price)
+    div.append('<br/>')
+
+    var title = $('<input type="text"/>')
+    title.width('450px')
+    div.append($('<span/>').text('title: ').css('display', 'inline-block').width('50px'))
+    div.append(title)
+    div.append('<br/>')
+
+    var desc = $('<textarea/>')
+    desc.width('500px');
+    desc.height('300px');
+    div.append(desc)
+    div.append('<br/>')
+
+    var label = $('<label/>')
+    var _public = $('<input type="checkbox"/>')
+    label.append(_public.prop('checked', true))
+    label.append($('<span/>').text('public'))
+    div.append(label)
+    div.append('<br/>')
+
+    div.append($('<button/>').text('submit').click(function () {
+        $(this).text('').append(createThrobber())
+        rpc('postJob', {
+            company : team.company__reference,
+            team : team.reference,
+            category : cats.val().cat,
+            subcategory : cats.val().subcat,
+            title : title.val(),
+            description : desc.val(),
+            skills : "",
+            budget : price.val(),
+            visibility : _public[0].checked ? 'public' : 'private'
+        }, function () {
+            _.closeDialog()
+        })
+    }))
+    div.append($('<button/>').text('cancel').click(function () {
+        _.closeDialog()
+    }))
+    _.dialog(div)
+}
+
+function drawPostIssueJob(team) {
+    var div = $('<div/>')
+
+    var cats = drawCategoryDropdown()
+    div.append(cats)
+    div.append('<br/>')
+
+    var issue = $('<input type="text"/>')
+    issue.width('450px')
+    div.append($('<span/>').text('issue: ').css('display', 'inline-block').width('50px'))
+    div.append(issue)
+    div.append('<br/>')
+
+    var skills = $('<input type="text"/>')
+    skills.width('450px')
+    div.append($('<span/>').text('skills: ').css('display', 'inline-block').width('50px'))
+    div.append(skills)
+    div.append('<br/>')
+
+
+    // work here
+    issue.val('https://github.com/dglittle/advanced-chess/issues/6')
+    skills.val('javascript jquery')
+
+
+    var price = $('<input type="text"/>')
+    price.width('100px')
+    price.val(20)
+    div.append($('<span/>').text('price: ').css('display', 'inline-block').width('50px'))
+    div.append(price)
+    div.append('<br/>')
+
+    var label = $('<label/>')
+    var _public = $('<input type="checkbox"/>')
+    label.append(_public.prop('checked', true))
+    label.append($('<span/>').text('public'))
+    div.append(label)
+    div.append('<br/>')
+
+    div.append($('<button/>').text('post').click(function () {
+        if (!issue.val()) {
+            alert('you must put an issue url')
+            return
+        }
+        if (!skills.val()) {
+            alert('you must have at least one skill')
+            return
+        }
+        $(this).text('').append(createThrobber())
+        rpc('postIssueJob',
+            team.company__reference,
+            team.reference,
+            cats.val().cat,
+            cats.val().subcat,
+            issue.val(),
+            skills.val(),
+            price.val(),
+            _public[0].checked ? 'public' : 'private',
+            function (s) {
+                _.closeDialog()
+            })
+    }))
+    div.append($('<button/>').text('cancel').click(function () {
+        _.closeDialog()
+    }))
+    _.dialog(div)
+}
+
+function drawEng(team, eng) {
+    var div = $('<div/>')
+    div.append($('<span/>').text(eng.job__title))
+    div.append($('<span/>').text(' '))
+    div.append($('<span/>').text(eng.provider__id))
+    div.append($('<button/>').text('message').click(function () {
+        var d = $('<div/>')
+        var s = $('<input type="text" style="width:300px"/>')
+        s.val('welcome!')
+        d.append(s)
+        d.append($('<br/>'))
+        var t = $('<textarea style="width:300px;height:200px"/>')
+        t.val('you can go ahead and get started. thanks :)')
+        d.append(t)
+        d.append($('<br/>'))
+        d.append($('<button/>').text('send').click(function () {
+            rpc('sendMessage', eng.provider__id, s.val(), t.val(), function () {
+                _.closeDialog()
+            })
+        }))
+        d.append($('<button/>').text('cancel').click(function () {
+            _.closeDialog()
+        }))
+        _.dialog(d)
+    }))
+    div.append($('<button/>').text('pay/close').click(function () {
+        _.print(eng)
+        $(this).text('').append(createThrobber())
+        rpc('fire', team.company__reference, eng.buyer_team__reference, eng.reference, 'Great work!', function () {
+            div.empty()
+        })
+    }))
+    return div
+}
+
+function getNumApps(job) {
+    return 1*job.count_total_applicants + 1*job.count_total_candidates
+}
+
+function drawListStuff(team) {
+    var div = $('<div/>')
+
+    var d1 = $('<div/>').text('jobs...')
+    div.append(d1)
+    var d2 = $('<div/>').text('on going...')
+    div.append(d2)
+
+    var throbber = createThrobber();
+    div.append(throbber);
+
+    rpc('getJobsAndEngs', team, function (o) {
+	throbber.remove();
+        _.each(o.jobs, function (job) {
+            var d = $('<div/>')
+            d.append($('<span style="color:blue;cursor:pointer"/>').text(job.title + ' [' + getNumApps(job) + ']').click(function () {
+                drawJob(job)
+            }))
+            d1.append(d)
+        })
+
+        _.each(o.engs, function (eng) {
+            d2.append(drawEng(team, eng))
+        })
+    })
+
+    g_bottom.empty().append(div)
+}
+
+function drawJob(job) {
+    var div = $('<div/>')
+
+    div.append($('<div/>').text(job.title))
+
+    function drawApp(app) {
+        var div = $('<div/>')
+        div.append($('<a/>').attr('href', 'https://www.odesk.com/users/' + app.recno_ciphertext).text(app.contractor_name))
+        div.append($('<span/>').text(" (" + (1*app.provider__feedback_score).toFixed(2) + ")"))
+        div.append($('<br/>'))
+        if (1*app.fp_upfront_payment > 0)
+            div.append($('<div style="font-weight:bold;color:red"/>').text(app.fp_upfront_payment + '% UPFRONT'))
+        div.append($('<div/>').text('$' + app.fp_charge_amount))
+        div.append($('<div/>').text(app.cover_letter))
+        // if (app.attachment_file_url)
+        //     div.append($('<a/>').attr('href', app.attachment_file_url).text('attachment'))
+        div.append($('<button/>').text('hire').click(function () {
+            $(this).text('').append(createThrobber())
+            rpc('hire', app.opening_ref, app.rid, app.ui_opening_title, function () {
+                g_bottom.empty().append($('<div/>').text('hired!'))
+            })
+        }))
+        return div
+    }
+
+    div.append($('<div/>').text('applications... ' + getNumApps(job)))
+    var appDiv = $('<div/>')
+    appDiv.append(createThrobber())
+    div.append(appDiv)
+    rpc('getApps', job, function (apps) {
+        appDiv.empty()
+        _.each(apps, function (app) {
+            appDiv.append(drawApp(app))
+        })
+    })
+    div.append($('<br/>'))
+
+    g_bottom.empty().append(div)
+}
+
+$(function () {
+    g_top = $('<div/>')
+    g_bottom = $('<div style="border-top:1px solid lightgrey"/>')
+    $('body').append(_.splitVert(0.01, 0.99, g_top, g_bottom))
+
+	rpc('getUser', function (user) {
+        g_top.append($('<span/>').text('welcome ' + user.name))
+
+        g_top.append($('<button/>').text('set creds').click(function () {
+            rpc('getCredentials', function (creds) {
+                if (!creds) creds = {}
+
+                var setCreds = []
+                function drawInput(path, defaultValue) {
+                    var d = $('<div/>')
+                    d.append($('<span style="100px"/>').text(path))
+                    var val = _.ensure.apply(null, [creds].concat(path.split(/\./), [defaultValue || '']))
+                    var input = path.match(/(pass|answer)$/i) ? $('<input type="password">') : $('<input type="text"/>')
+                    input.val(val)
+                    setCreds.push(function () {
+                        eval('creds.' + path + ' = "' + _.escapeString(input.val()) + '"')
+                    })
+                    d.append(input)
+                    return d
+                }
+
+                var d = $('<div/>')
+                d.append(drawInput('odesk.user', user._id))
+                d.append(drawInput('odesk.pass'))
+                d.append(drawInput('odesk.securityAnswer'))
+                d.append(drawInput('github.user'))
+                d.append(drawInput('github.pass'))
+
+                d.append($('<button/>').text('update').click(function () {
+                    _.each(setCreds, function (f) { f() })
+                    rpc('setCredentials', creds, function () {
+                        _.closeDialog()
+                    })
+                }))
+                d.append($('<button/>').text('cancel').click(function () {
+                    _.closeDialog()
+                }))
+                _.dialog(d)
+            })
+        }))
+
+        var teamSpan = $('<span/>')
+        g_top.append(teamSpan)
+        function redrawTeam(team) {
+            teamSpan.empty()
+            teamSpan.text(', team: ' + (team ? team.name : ''))
+            teamSpan.append($('<button/>').text('set team').click(function () {
+                rpc('getTeams', function (teams) {
+                    var d = $('<div/>')
+                    var dd = drawTeamDropdown(teams)
+                    d.append(dd)
+                    d.append($('<br/>'))
+                    d.append($('<button/>').text('set').click(function () {
+                        var t = dd.val()
+                        rpc('setTeam', t, function () {
+                            redrawTeam(t)
+                            _.closeDialog()
+                        })
+                    }))
+                    d.append($('<button/>').text('cancel').click(function () {
+                        _.closeDialog()
+                    }))
+                    _.dialog(d)
+                })
+            }))
+            if (team) {
+                teamSpan.append($('<span/>').text(', humanscript: '))
+                teamSpan.append($('<button/>').text('post').click(function () {
+                    drawPostJob(team)
+                }))
+                teamSpan.append($('<button/>').text('list').click(function () {
+                    drawListStuff(team)
+                }))
+                teamSpan.append($('<button/>').text('post for github issue').click(function () {
+                    drawPostIssueJob(team)
+                }))
+            }
+        }
+        redrawTeam(user.team)
+	})
+})
+
+var g_cats = {
+    "Web Development": [
+        "Web Design",
+        "Web Programming",
+        "Ecommerce",
+        "UI Design",
+        "Website QA",
+        "Website Project Management",
+        "Other - Web Development"
+    ],
+    "Software Development": [
+        "Desktop Applications",
+        "Game Development",
+        "Scripts & Utilities",
+        "Software Plug-ins",
+        "Mobile Apps",
+        "Application Interface Design",
+        "Software Project Management",
+        "Software QA",
+        "VOIP",
+        "Other - Software Development"
+    ],
+    "Networking & Information Systems": [
+        "Network Administration",
+        "DBA - Database Administration",
+        "Server Administration",
+        "ERP / CRM Implementation",
+        "Other - Networking & Information Systems"
+    ],
+    "Writing & Translation": [
+        "Technical Writing",
+        "Website Content",
+        "Blog & Article Writing",
+        "Copywriting",
+        "Translation",
+        "Creative Writing",
+        "Other - Writing & Translation"
+    ],
+    "Administrative Support": [
+        "Data Entry",
+        "Personal Assistant",
+        "Web Research",
+        "Email Response Handling",
+        "Transcription",
+        "Other - Administrative Support"
+    ],
+    "Design & Multimedia": [
+        "Graphic Design",
+        "Logo Design",
+        "Illustration",
+        "Print Design",
+        "3D Modeling & CAD",
+        "Audio Production",
+        "Video Production",
+        "Voice Talent",
+        "Animation",
+        "Presentations",
+        "Engineering & Technical Design",
+        "Other - Design & Multimedia"
+    ],
+    "Customer Service": [
+        "Customer Service & Support",
+        "Technical Support",
+        "Phone Support",
+        "Order Processing",
+        "Other - Customer Service"
+    ],
+    "Sales & Marketing": [
+        "Advertising",
+        "Email Marketing",
+        "SEO - Search Engine Optimization",
+        "SEM - Search Engine Marketing",
+        "SMM - Social Media Marketing",
+        "PR - Public Relations",
+        "Telemarketing & Telesales",
+        "Business Plans & Marketing Strategy",
+        "Market Research & Surveys",
+        "Sales & Lead Generation",
+        "Other - Sales & Marketing"
+    ],
+    "Business Services": [
+        "Accounting",
+        "Bookkeeping",
+        "HR / Payroll",
+        "Financial Services & Planning",
+        "Payment Processing",
+        "Legal",
+        "Project Management",
+        "Business Consulting",
+        "Recruiting",
+        "Statistical Analysis",
+        "Other - Business Services",
+        ""
+    ]
+}
+
+</script>
+
+</body>
+</html>

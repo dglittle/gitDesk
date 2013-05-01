@@ -1,0 +1,22 @@
+{
+  "name": "nodesk",
+  "description": "node + odesk",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "*",
+    "mongojs": "*",
+    "passport": "*",
+    "passport-oauth": "*",
+    "connect-mongo": "*",
+    "node-odesk": "*",
+    "passport-github": "*",
+    "swig": "*",
+    
+    "gl519": "git://github.com/dglittle/gl519.git#gh-pages",
+    "node-odesk-utils": "git://github.com/dglittle/node-odesk-utils.git"
+  },
+  "engines": {
+    "node": "0.10.*",
+    "npm": "1.2.*"
+  }
+}
