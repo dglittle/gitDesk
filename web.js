@@ -21,6 +21,9 @@ _.run(function () {
 
     app.use(express.static(__dirname + '/static'));
 
+
+// ------- ------- ------- ------- APP ROUTES GO HERE ------- ------- ------- -------
+
 // Add Issue
     app.get('/addissue', function (req, res) {
 
@@ -30,6 +33,11 @@ _.run(function () {
 			githubuserid: 'somegithubuser'
 		}))
 	})
+
+
+
+// ------- ------- ------- ------- BELOW HERE IS BACK-END ------- ------- ------- -------
+
 
 	app.listen(3000, function() {
 		console.log("go to localhost:3000")
