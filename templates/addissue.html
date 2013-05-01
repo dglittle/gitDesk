@@ -1,0 +1,54 @@
+{% extends 'templates/issues.html' %}
+
+{% block title %}gitDesk - Add Issue{% endblock %}
+
+{% block body %}
+
+<h1>Add Issue</h1>
+<form> <!-- class="oFormTop" -->
+
+	<div class="oFormField">
+	  <label class="oLabel">GitHub Repository</label>
+	  <select style="font-size: 14px;">
+	    <option>Repo #1</option>
+	    <option>Second Repo</option>
+	  </select>
+	</div>
+
+	<div class="oFormField">
+	  <label class="oLabel">Issue</label>
+	  <select style="font-size: 14px;">
+	    <option>Create new GitHub issue</option>
+	    <option>- Use existing issue: Make unicode chess pieces white</option>
+	    <option>- Use existing issue: wrap javascript chess AI</option>
+	  </select><span class="oHint" style="font-family:courier;">Note: this only appears if the user has open issues </span>
+	</div>	
+
+	<div class="oFormField">
+	    <label class="oLabel" for="lrgCls">Title</label>
+	    <input type="text" name="title" id="lrgCls" value="">
+	    <span class="oHint">Be clear! This is how developers will find your issue to work on.</span>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="lrgCls">Description</label>
+	    <textarea id="description" value="" style="font-size:14px;"></textarea>
+		<span class="oHint" style="font-family:courier;">Note: if the user selects an existing issue from his repo, pre-populate the title and description. And in that case, we need to append the county info to the GitHub issue (or perhaps as a comment?)</span>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="lrgCls">Price</label>
+	    <span>$ </span><input type="text" name="price" id="lrgCls" value="" class="oInputText oInputCurrency">
+	    <span class="oHint">You will only pay when you accept a pull request. <a href="#">How does this work?</a></span>
+	</div>
+
+	<footer class="oFormFooter">
+		<div class="oFieldValue">
+			<a class="oBtn oBtnPrimary oBtnLarge" href="1.html">Create Issue</a>&nbsp;
+			<a class="oBtn oBtnSecondary oBtnLarge" href="#"">Preview</a>
+			<a class="oBtn oBtnCancel" href="myissues.html">Cancel</a>
+		</div>
+	</footer>
+</form>
+
+{% endblock %}

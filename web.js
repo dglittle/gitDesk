@@ -1,5 +1,18 @@
 
-var template  = require('swig');
+var swig  = require('swig');
+
+swig.init({
+  allowErrors: false,
+  autoescape: true,
+  cache: true,
+  encoding: 'utf8',
+  filters: {},
+  root: ".",
+  tags: {},
+  extensions: {},
+  tzOffset: 0
+});
+
 var _ = require('gl519')
 _.run(function () {
 
@@ -8,16 +21,15 @@ _.run(function () {
 
     app.use(express.static(__dirname + '/static'));
 
-    app.get('/', function (req, res) {
+// Add Issue
+    app.get('/addissue', function (req, res) {
 
-
-        // var tmpl = template.compileFile('/path/to/template.html');
-        // tmpl.render({
-        //     pagename: 'awesome people',
-        //     authors: ['Paul', 'Jim', 'Jane']
-        // });        
-        // res.send('hi')
-    })
+		var tmpl = swig.compileFile('templates/addissue.html');
+		res.send(tmpl.render({
+			odeskuserid: 'someodeskuser',
+			githubuserid: 'somegithubuser'
+		}))
+	})
 
 	app.listen(3000, function() {
 		console.log("go to localhost:3000")
