@@ -29,15 +29,21 @@
 	}	
 </style>
 
+<title>{% block title %}{% endblock %}</title>
+
 </head>
 
 <body>
+
+{% block nav %}
   <div id="nav">
 	<span><a href="/" style="color:white;font-weight:bold;">gitDesk</a></strong>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;oDesk: {{ odeskuserid }}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;GitHub: {{ githubuserid }}</span>
   </div>
+{% endblock %}
 
-  <div id="main" role="main" class="oPageCentered">
-	</br></br></br></br></br>Hi Greg.
-  </div>
+<div id="main" role="main" class="oPageCentered"></br></br></br></br></br>
+{% block body %}
+{% endblock %}
+</div>
 
 </body></html>

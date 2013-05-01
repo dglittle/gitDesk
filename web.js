@@ -26,7 +26,20 @@ process.on('uncaughtException', function (err) {
     } catch (e) {}
 })
 
-var template  = require('swig');
+var swig  = require('swig');
+
+swig.init({
+  allowErrors: false,
+  autoescape: true,
+  cache: true,
+  encoding: 'utf8',
+  filters: {},
+  root: ".",
+  tags: {},
+  extensions: {},
+  tzOffset: 0
+});
+
 var _ = require('gl519')
 _.run(function () {
 
@@ -71,13 +84,15 @@ _.run(function () {
         }
     })
 
-    app.get('/hi', function (req, res) {
-        var tmpl = template.compileFile('./templates/base.html');
-        res.send(tmpl.render({
-            odeskuserid: req.user.id,
-            githubuserid: 'somegithubuser'
-        }))
-    })
+// Add Issue
+    app.get('/addissue', function (req, res) {
+
+		var tmpl = swig.compileFile('templates/addissue.html');
+		res.send(tmpl.render({
+			odeskuserid: req.user._id,
+			githubuserid: 'somegithubuser'
+		}))
+	})
 
     app.use(express.static(__dirname + '/static'));
 
