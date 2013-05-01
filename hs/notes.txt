@@ -1,0 +1,70 @@
+Each buyer would have his own repository(ies).
+- The buyer links his github account
+- The buyer selects a repository to use for this particular issue
+
+Add optional skills line? (no skills in job post –> append in description)
+
+Auth:
+- use oauth for both oDesk and Git (all API, no UI hacking)
+
+
+-----------------------
+CLIENT
+-----------------------
+
+Auth GitDesk
+- If fully auth'd, go to "My Issues"
+- If oDesk session, "link GitHub account"
+
+Add Issue
+- Select repo, title and description
+
+View Issue (also shown on "add issue" confirmation)
+- Show the issue
+ 	+ GitHub issue link and status
+	+ title and description
+	+ price and a blurb about what that means
+- Link to job as developers will see it
+- Status
+	+ open pull requests (link to each)
+	+ cancel buttons (several options)
+- Back to My Issues
+
+View Pull Request
+- (look at the GitHub pull request UI)
+
+-----------------------
+AUTH
+-----------------------
+1) Go to gitDesk.herokuapp.com: you see a splash page, with a prompt to log in to / auth oDesk
+2) Once you do that, you are prompted to link your GitHub – click to do the GH oauth process
+3) You're redirected to gitDesk
+-----------------------
+CONTRACTOR FINDS JOB
+-----------------------
+The issue link in the oDesk job doesn't go to GitHub, it goes to gitDesk interstitial
+- If the contractor is already registered on gitDesk, redirect silently to GitHub issue
+- Else, prompt to link their GH account to oDesk ("so you can get paid automatically for this issue")
+- Then redirect to GH issue
+-----------------------
+AUTO-PAYMENT
+-----------------------
+Upon issue close, we figure out whom to pay:
+- If only one pull request, pay him
+- If >1 pull request, pay the last pull requester
+- (Possibly complexity: notify the client and ask them if they want to pay others)
+-----------------------
+MERGING AND CLOSING
+-----------------------
+We'll assume that if you accept (i.e. merge) someone's pull request, you pay them (queue up in 2 days).
+No "close and pay" on gitDesk.
+Two exception cases:
+1) You merged but don't want to pay: show pending payment in gitDesk, with "cancel" button
+2) You didn't merge, but you do want to pay: show non-merged pull-requests, with "pay" button
+-----------------------
+UI PAGES REQUIRED
+-----------------------
+client auth
+contractor auth
+add issue
+view issue
