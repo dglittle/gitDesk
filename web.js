@@ -182,6 +182,8 @@ _.run(function () {
 
 		var tmpl = swig.compileFile('templates/auth.html');
 		res.send(tmpl.render({
+			odeskuserid: req.query.odeskuserid,
+			githubuserid: req.query.githubuserid
 		}))
 	})
 

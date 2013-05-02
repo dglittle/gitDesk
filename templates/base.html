@@ -44,25 +44,6 @@
 <div id="main" role="main" class="oPageCentered"></br></br></br></br></br>
 
 {% block issues %}
-  <div class="sourceExample">
-	<h1>Open Issues&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;"></span></h1>
-
-	<ul class="oPlainList">
-	{% for issue in gitDesk_issues %}
-	  <li>
-		{% if thisissue == issue.id %}<strong>
-		{% else %}<a href="issue/{{ issue.id }}">{% endif %}
-			{{ issue.title }}
-		{% if thisissue == issue.id %}</strong>
-		{% else %}</a>{% endif %}
-		{% if issue.pull_reqs > 0 %}
-		  <span class="label label-info" style="height:20px"><h3>{{ issue.pull_reqs }}&nbsp;pull request{% if issue.pull_reqs > 1 %}s{% endif %}</h3></span>
-		{% endif %}
-	  </li>
-	{% endfor %}
-	  </br>
-	</ul>
-  </div>
 {% endblock issues %}
 <hr>
 {% block body %}

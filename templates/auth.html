@@ -3,5 +3,14 @@
 {% block title %}Welcome to gitDesk - Link Your Accounts!{% endblock %}
 
 {% block body %}
-Hello there.
+
+<h1 class="oH1Huge">Welcome to gitDesk!</h1>
+{% if !odeskuserid %}
+	<p>Create an issue in GitHub, name a price, and an oDesk developer will resolve it for you!</p>
+	<a class="oBtn oBtnPrimary oBtnLarge" href="/auth?odeskuserid=mlevinson">Get started by linking your oDesk account to gitDesk</a>
+{% else %}
+	<p>Welcome, {{ odeskuserid }}!</p>
+	<a class="oBtn oBtnPrimary oBtnLarge" href="/addissue">Now just link your GitHub account and you'll be ready</a>
+{% endif %}
+
 {% endblock body %}
