@@ -76,6 +76,7 @@ _.run(function () {
 
     require('./login.js')(db, app, process.env.HOST, process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET, process.env.GITHUB_CLIENT_ID, process.env.GITHUB_CLIENT_SECRET)
 
+/*
     app.all('*', function (req, res, next) {
         if (!req.user) {
             res.redirect('/login')
@@ -83,7 +84,7 @@ _.run(function () {
             next()
         }
     })
-
+*/
 
 // ------- ------- ------- ------- APP ROUTES GO HERE ------- ------- ------- -------
 
@@ -92,8 +93,17 @@ _.run(function () {
 
 		var tmpl = swig.compileFile('templates/addissue.html');
 		res.send(tmpl.render({
-			odeskuserid: req.user._id,
-			githubuserid: 'somegithubuser'
+			odeskuserid: 'someodesker',
+			githubuserid: 'somegithubuser',
+//			myCars: ['Saab','Volvo','BMW']
+		}))
+	})
+
+// View Issues
+    app.get('/issues', function (req, res) {
+
+		var tmpl = swig.compileFile('templates/base.html');
+		res.send(tmpl.render({
 		}))
 	})
 

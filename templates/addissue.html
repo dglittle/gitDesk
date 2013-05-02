@@ -1,6 +1,10 @@
-{% extends 'templates/issues.html' %}
+{% extends 'templates/base.html' %}
 
 {% block title %}gitDesk - Add Issue{% endblock %}
+
+{% block issues %}
+  {% parent %}
+{% endblock %}
 
 {% block body %}
 
@@ -45,10 +49,10 @@
 	<footer class="oFormFooter">
 		<div class="oFieldValue">
 			<a class="oBtn oBtnPrimary oBtnLarge" href="1.html">Create Issue</a>&nbsp;
-			<a class="oBtn oBtnSecondary oBtnLarge" href="#"">Preview</a>
+			<a class="oBtn oBtnSecondary oBtnLarge" href="#">Preview</a>
 			<a class="oBtn oBtnCancel" href="myissues.html">Cancel</a>
 		</div>
 	</footer>
 </form>
 
-{% endblock %}
+{% endblock body %}
