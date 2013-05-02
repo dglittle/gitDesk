@@ -4,35 +4,26 @@
 
 {% block issues %}
   {% parent %}
+  <a class="btn" href="../addissue">Add Issue</a></br>
 {% endblock %}
 
 {% block body %}
 </br>
-<h1>View Issue</h1>
 
+<h1 style="margin-bottom:10px;">{{ issue.title }}</h1>
 <div id="issue" class="well">
-  <h1 style="margin-bottom:10px;">wrap javascript chess AI</h1>
   <span style="color: #666;">
-	<p><strong>Open</strong>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;Posted 11 hours ago&nbsp;&nbsp;-&nbsp;
-	  <a href="https://www.odesk.com/jobs/make-unicode-chess-pieces-look-white_~~e8233e3fddb85354">
+	<p><strong>{{ issue.status }}</strong>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;Posted&nbsp;{{ issue.posted_on }}&nbsp;&nbsp;-&nbsp;
+	  <a href="{{ issue.odesk_url }}">
 		View this job as developers will see it on oDesk</a></br>
-	<strong>$12.00 Bounty</strong>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;You will only pay when you accept a pull request</p>
+	<strong>{{ issue.bounty }} Bounty</strong>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;You will only pay when you accept a pull request</p>
   <hr style="margin-top:-5px;">
 
 	<h3>GitHub issue</h3>
-	<a href="https://github.com/dglittle/advanced-chess/issues/5">github.com/dglittle/advanced-chess/issues/5</a></p>
+	<a href="{{ issue.gh_url }}">{{ issue.gh_url }}</a></p>
 
 	<h3>Issue Description</h3>
-	* create a directory called chess_ai_test</br>
-	* copy in this javascript AI: https://github.com/glinscott/Garbochess-JS/blob/master/js/garbochess.js</br>
-	* create an index.html</br>
-	* create a function in there called suggestMoves(fen, time, n)</br>
-	</br>
-	* fen: a string containing a FEN, see: http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation</br>
-	* time: max time to spend finding moves</br>
-	* n: number of moves to suggest</br>
-	* return an array of n FEN strings representing the best n moves</br>
-	* test this function in index.html with this FEN:</br>
+	{{ issue.description }}
 </div>
 
 <div id="pullrequest"><!-- class="collapse out" -->

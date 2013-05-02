@@ -99,7 +99,7 @@ _.run(function () {
 			    {
 			        "id"		: 101,
 					"title"		: "make unicode chess pieces white",
-			        "pull_reqs"	: 2
+			        "pull_reqs"	: 0
 			    }, 
 			    {
 			        "id"		: 102,
@@ -137,7 +137,10 @@ _.run(function () {
 		- oDesk job URL
 		- bounty
 		- github issue URL
+
 	Also, we need some kind of way for the top section to "know" that we're viewing this issue
+		- I've assumed a global variable 'thisissue' that is set to True when we're viewing a
+		  specific issue (see the code in base.html in the "issues" list)
 		
 */
 
@@ -156,25 +159,20 @@ _.run(function () {
 			    {
 			        "id"		: 102,
 			        "title"		: "this is our second open issue",
-			        "pull_reqs"	: 1
+			        "pull_reqs"	: 0
 			    }
 			],
-			gitHub_issues: [
-			    {
-			        "repo"		: "chessRepo",
-					"issues"	: [
-						{ "title" : "first issue in chessRepo" },
-						{ "title" : "second issue in chessRepo" }
-					]
-				},
-				{
-			        "repo"		: "odeskRepo",
-					"issues"	: [
-						{ "title" : "odeskRepo issue one" },
-						{ "title" : "second issue in odeskRepo" }
-					]
-				}
-			]
+			issue: {
+			        "id"		: 101,
+					"title"		: "make unicode chess pieces white",
+					"status"	: "Open",
+					"posted_on" : "11 hours ago",
+					"bounty"	: "$13.00",
+					"gh_url"	: "http://www.github.com/dglittle/advanced-chess/issues/5",
+					"odesk_url"	: "https://www.odesk.com/jobs/make-unicode-chess-pieces-look-white_~~e8233e3fddb85354",
+			        "pull_reqs"	: 2,
+					"description" : "github issue description"  // Greg: I assume you'll pass me a string that will render here, nicely formatted
+			}
 		}))
 	})
 

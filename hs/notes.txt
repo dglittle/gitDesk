@@ -1,30 +1,9 @@
-Each buyer would have his own repository(ies).
-- The buyer links his github account
-- The buyer selects a repository to use for this particular issue
-
-Add optional skills line? (no skills in job post –> append in description)
 
 Auth:
 - use oauth for both oDesk and Git (all API, no UI hacking)
+- splash page (step one: auth oDesk, step two: auth GitHub, step three: redirect to "add issue")
 
 
------------------------
-CLIENT
------------------------
-
-Auth GitDesk
-- If fully auth'd, go to "My Issues"
-- If oDesk session, "link GitHub account"
-
-Add Issue
-- Select repo, title and description
-
-View Issue (also shown on "add issue" confirmation)
-- Show the issue
- 	+ GitHub issue link and status
-	+ title and description
-	+ price and a blurb about what that means
-- Link to job as developers will see it
 - Status
 	+ open pull requests (link to each)
 	+ cancel buttons (several options)

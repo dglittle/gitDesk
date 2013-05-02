@@ -37,7 +37,7 @@
 
 {% block nav %}
   <div id="nav">
-	<span><a href="/" style="color:white;font-weight:bold;">gitDesk</a></strong>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;oDesk: {{ odeskuserid }}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;GitHub: {{ githubuserid }}</span>
+	<span><a href="/addissue" style="color:white;font-weight:bold;">gitDesk</a></strong>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;oDesk: {{ odeskuserid }}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;GitHub: {{ githubuserid }}</span>
   </div>
 {% endblock nav %}
 
@@ -49,7 +49,12 @@
 
 	<ul class="oPlainList">
 	{% for issue in gitDesk_issues %}
-	  <li><a href="issue/{{ issue.id }}.html">{{ issue.title }}</a>
+	  <li>
+		{% if thisissue == issue.id %}<strong>
+		{% else %}<a href="issue/{{ issue.id }}">{% endif %}
+			{{ issue.title }}
+		{% if thisissue == issue.id %}</strong>
+		{% else %}</a>{% endif %}
 		{% if issue.pull_reqs > 0 %}
 		  <span class="label label-info" style="height:20px"><h3>{{ issue.pull_reqs }}&nbsp;pull request{% if issue.pull_reqs > 1 %}s{% endif %}</h3></span>
 		{% endif %}
@@ -57,10 +62,9 @@
 	{% endfor %}
 	  </br>
 	</ul>
-
   </div>
 {% endblock issues %}
-
+<hr>
 {% block body %}
 {% endblock body %}
 </div>

@@ -30,15 +30,20 @@
 	</div>	
 
 	<div class="oFormField">
-	    <label class="oLabel" for="lrgCls">Title</label>
-	    <input type="text" name="title" id="lrgCls" value="">
+	    <label class="oLabel" for="title">Title</label>
+	    <input type="text" name="title" id="title" value="" class="oInputText oFormLrg">
 	    <span class="oHint">Be clear! This is how developers will find your issue to work on.</span>
 	</div>
 
 	<div class="oFormField">
-	    <label class="oLabel" for="lrgCls">Description</label>
-	    <textarea id="description" value="" style="font-size:14px;"></textarea>
-		<span class="oHint" style="font-family:courier;">Note: if the user selects an existing issue from his repo, pre-populate the title and description. And in that case, we need to append the county info to the GitHub issue (or perhaps as a comment?)</span>
+	    <label class="oLabel" for="description">Description</label>
+	    <textarea id="description" name="description" value="" style="font-size:14px;"></textarea>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="skills">Language / Technology</label>
+	    <input type="text" name="skills" id="skills" class="oInputText oFormLrg" value="">
+	    <span class="oHint">Examples: python, javascript  // note: use the oDesk skills auto-suggest widget?</span>
 	</div>
 
 	<div class="oFormField">
@@ -53,6 +58,7 @@
 			<a class="oBtn oBtnSecondary oBtnLarge" href="#">Preview</a>
 			<a class="oBtn oBtnCancel" href="myissues.html">Cancel</a>
 		</div>
+		<div class="oHint">"Create Issue" will create a GitHub issue and an oDesk job describing the bounty.</div>
 	</footer>
 </form>
 
