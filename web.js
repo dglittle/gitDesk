@@ -95,7 +95,34 @@ _.run(function () {
 		res.send(tmpl.render({
 			odeskuserid: 'someodesker',
 			githubuserid: 'somegithubuser',
-//			myCars: ['Saab','Volvo','BMW']
+			gitDesk_issues: [
+			    {
+			        "id"		: 101,
+					"title"		: "make unicode chess pieces white",
+			        "pull_reqs"	: 2
+			    }, 
+			    {
+			        "id"		: 102,
+			        "title"		: "this is our second open issue",
+			        "pull_reqs"	: 1
+			    }
+			],
+			gitHub_issues: [
+			    {
+			        "repo"		: "chessRepo",
+					"issues"	: [
+						{ "title" : "first issue in chessRepo" },
+						{ "title" : "second issue in chessRepo" }
+					]
+				},
+				{
+			        "repo"		: "odeskRepo",
+					"issues"	: [
+						{ "title" : "odeskRepo issue one" },
+						{ "title" : "second issue in odeskRepo" }
+					]
+				}
+			]
 		}))
 	})
 

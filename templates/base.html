@@ -48,8 +48,13 @@
 	<h1>Open Issues&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;"></span></h1>
 
 	<ul class="oPlainList">
-	  <li><a href="1.html">Make unicode chess pieces white</a></li>
-	  <li><a href="2.html">wrap javascript chess AI </a><span class="label label-info" style="height:20px"><h3>1 pull request</h3></span></li>
+	{% for issue in gitDesk_issues %}
+	  <li><a href="issue/{{ issue.id }}.html">{{ issue.title }}</a>
+		{% if issue.pull_reqs > 0 %}
+		  <span class="label label-info" style="height:20px"><h3>{{ issue.pull_reqs }}&nbsp;pull request{% if issue.pull_reqs > 1 %}s{% endif %}</h3></span>
+		{% endif %}
+	  </li>
+	{% endfor %}
 	  </br>
 	</ul>
 

@@ -7,15 +7,16 @@
 {% endblock %}
 
 {% block body %}
-
+</br>
 <h1>Add Issue</h1>
 <form> <!-- class="oFormTop" -->
 
 	<div class="oFormField">
 	  <label class="oLabel">GitHub Repository</label>
 	  <select style="font-size: 14px;">
-	    <option>Repo #1</option>
-	    <option>Second Repo</option>
+		{% for r in gitHub_issues %}
+		  <option>{{r.repo}}</option>
+		{% endfor %}
 	  </select>
 	</div>
 
@@ -25,7 +26,7 @@
 	    <option>Create new GitHub issue</option>
 	    <option>- Use existing issue: Make unicode chess pieces white</option>
 	    <option>- Use existing issue: wrap javascript chess AI</option>
-	  </select><span class="oHint" style="font-family:courier;">Note: this only appears if the user has open issues </span>
+	  </select>
 	</div>	
 
 	<div class="oFormField">
