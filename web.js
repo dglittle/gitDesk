@@ -93,7 +93,7 @@ _.run(function () {
 
 		var tmpl = swig.compileFile('templates/addissue.html');
 		res.send(tmpl.render({
-			odeskuserid: 'someodesker',
+			odeskuserid: 'someodesker',   // Greg: the two user id's are probably in the session, right?
 			githubuserid: 'somegithubuser',
 			gitDesk_issues: [
 			    {
@@ -171,8 +171,17 @@ _.run(function () {
 					"gh_url"	: "http://www.github.com/dglittle/advanced-chess/issues/5",
 					"odesk_url"	: "https://www.odesk.com/jobs/make-unicode-chess-pieces-look-white_~~e8233e3fddb85354",
 			        "pull_reqs"	: 2,
-					"description" : "github issue description"  // Greg: I assume you'll pass me a string that will render here, nicely formatted
+					"description" : "github issue description"  // Greg: I assume you'll pass me a string
+																// that will render here, nicely formatted
 			}
+		}))
+	})
+
+// Splash page and auth
+    app.get('/auth', function (req, res) {
+
+		var tmpl = swig.compileFile('templates/auth.html');
+		res.send(tmpl.render({
 		}))
 	})
 
