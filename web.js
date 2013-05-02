@@ -126,11 +126,55 @@ _.run(function () {
 		}))
 	})
 
-// View Issues
-    app.get('/issues', function (req, res) {
+// View Issue
+/*
+	Greg - the url would be something like /issues/101
+	and that goes to the "view issue" screen for issue 101
+	I need an "issue" JSON object with the following data:
+		- title
+		- status
+		- posted on (string)
+		- oDesk job URL
+		- bounty
+		- github issue URL
+	Also, we need some kind of way for the top section to "know" that we're viewing this issue
+		
+*/
 
-		var tmpl = swig.compileFile('templates/base.html');
+    app.get('/issue/101', function (req, res) {
+
+		var tmpl = swig.compileFile('templates/issue.html');
 		res.send(tmpl.render({
+			odeskuserid: 'someodesker',
+			githubuserid: 'somegithubuser',
+			gitDesk_issues: [
+			    {
+			        "id"		: 101,
+					"title"		: "make unicode chess pieces white",
+			        "pull_reqs"	: 2
+			    }, 
+			    {
+			        "id"		: 102,
+			        "title"		: "this is our second open issue",
+			        "pull_reqs"	: 1
+			    }
+			],
+			gitHub_issues: [
+			    {
+			        "repo"		: "chessRepo",
+					"issues"	: [
+						{ "title" : "first issue in chessRepo" },
+						{ "title" : "second issue in chessRepo" }
+					]
+				},
+				{
+			        "repo"		: "odeskRepo",
+					"issues"	: [
+						{ "title" : "odeskRepo issue one" },
+						{ "title" : "second issue in odeskRepo" }
+					]
+				}
+			]
 		}))
 	})
 

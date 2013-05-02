@@ -1,0 +1,82 @@
+{% extends 'templates/base.html' %}
+
+{% block title %}gitDesk - Add Issue{% endblock %}
+
+{% block issues %}
+  {% parent %}
+{% endblock %}
+
+{% block body %}
+</br>
+<h1>View Issue</h1>
+
+<div id="issue" class="well">
+  <h1 style="margin-bottom:10px;">wrap javascript chess AI</h1>
+  <span style="color: #666;">
+	<p><strong>Open</strong>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;Posted 11 hours ago&nbsp;&nbsp;-&nbsp;
+	  <a href="https://www.odesk.com/jobs/make-unicode-chess-pieces-look-white_~~e8233e3fddb85354">
+		View this job as developers will see it on oDesk</a></br>
+	<strong>$12.00 Bounty</strong>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;You will only pay when you accept a pull request</p>
+  <hr style="margin-top:-5px;">
+
+	<h3>GitHub issue</h3>
+	<a href="https://github.com/dglittle/advanced-chess/issues/5">github.com/dglittle/advanced-chess/issues/5</a></p>
+
+	<h3>Issue Description</h3>
+	* create a directory called chess_ai_test</br>
+	* copy in this javascript AI: https://github.com/glinscott/Garbochess-JS/blob/master/js/garbochess.js</br>
+	* create an index.html</br>
+	* create a function in there called suggestMoves(fen, time, n)</br>
+	</br>
+	* fen: a string containing a FEN, see: http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation</br>
+	* time: max time to spend finding moves</br>
+	* n: number of moves to suggest</br>
+	* return an array of n FEN strings representing the best n moves</br>
+	* test this function in index.html with this FEN:</br>
+</div>
+
+<div id="pullrequest"><!-- class="collapse out" -->
+<h2 class="oH2Low">Pull Request</h2></br>
+  <p><strong>Greg:</strong> I don't really know how to display the pull request and the code; I defer to you on this. Basically here we need to show what the developer submitted, so he can pay or not.</p>
+
+  <a href="#mergeandpay" role="button" class="oBtn oBtnPrimary oBtnLarge" data-toggle="modal">Close Issue and Pay $12.00</a>&nbsp;
+  <a class="oBtn oBtnSecondary oBtnLarge" href="#">Reject Pull Request</a>
+  <a class="oBtn oBtnCancel" href="myissues.html">Cancel Issue</a>
+</div>
+
+<!-- Merge and Pay Modal -->
+<div id="mergeandpay" class="modal hide" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+    <h1 id="myModalLabel">Close Issue and Pay Bounty</h1>
+  </div>
+  <div class="modal-body">
+	When you click "OK", the following will happen:
+	<ul class="oBulletList">
+	  <li>You will merge the pull request</li>
+	  <li>You will submit a payment for $12.00</li>
+	  <li>The GitHub issue will resolved</li>
+	  <li>The associated oDesk job will be closed</li>
+	</ul>
+  </div>
+  <div class="modal-footer">
+    <a class="oBtn oBtnCancel" data-dismiss="modal" aria-hidden="true">No - cancel</a>
+    <a class="oBtn oBtnPrimary oBtnLarge" href="2.html">Yes - close and pay</a>
+  </div>
+</div>
+</br>
+<div id="noteaboutpaying">
+  <article class="oMsg oMsgWarning">
+    <a href="#" class="oBtnCloseSmall"></a>
+    <strong>Greg: thoughts on how paying should work</strong>
+    <p>I has a good talk about this today with Paul, John and Yanni. It seems like it might be tricky to have the client merge the pull request from within our interface. He'll probably have to merge, maybe resolve conflicts, probably do some testing, etc. Two alternatives:</p>
+	<h4>Option One: Auto Pay 2 Days after 'Merge to Master'</h4>
+	<p>Merging to master doesn't mean the client likes the code (since he'll probably do some testing post-merge), but it's a pretty good signal. Maybe you merge, we have GitHub notify us, and we charge you two days later unless we hear from you.</p>
+	<h4>Option Two: Prepay(!)</h4>
+	<p>Similar flow, but maybe you pay when you order. We hold the funds, and two days after you [merge to master / accept the pull request], we release the funds to the developer.</p>
+	<p>Is merging to master the best proxy? What do you think?</p> 
+  </article>
+</div>
+
+
+{% endblock body %}
