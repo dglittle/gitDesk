@@ -1,48 +1,51 @@
 -----------------------
        LEGEND
--   // note
+-----------------------
 +   // back-end API needed
 *   // UI needed
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Client Stuff
+
 -----------------------
-
-Auth:
-- use oauth for both oDesk and Git (all API, no UI hacking)
+AUTH
+-----------------------
 * splash page (step one: auth oDesk, step two: auth GitHub, step three: redirect to "add issue")
++ put the odesk and github user id's in the session (so that, for instance, the nav can display them)
 
-View Issue:
-* Display pull request (and diff?)
+-----------------------
+ADD ISSUE
+-----------------------
++ Create Issue API (odesk and github)
++ Add Bounty API (creates odesk job and links it an existing github issue)
++ Fetch the user's repos, and open issues in each repo
+* Allow selection of repo, and issue within repo
 
-API's needed:
-+ Create Issue (odesk and github)
-+ Add Bounty (creates odesk job, edits existing github issue)
-+ Close and Pay
+-----------------------
+VIEW ISSUE
+-----------------------
+* Display pull request (and diff?) on the "view issue" screen
++ Close Issue and Pay
++ Reject pull-request
+
+-----------------------
+PULL REQUEST SUBMITTED
+-----------------------
++ Catch GitHub pull request notification and notify the client
+* Email client about new pull request
+
+-----------------------
+PULL REQUEST MERGED
+-----------------------
++ Catch GitHub merge event: hire the contractor, submit bounty payment, close contract
+* Email both client and contractor that the payment will take place in X hours
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+Contractor Stuff
 
 -----------------------
 CONTRACTOR FINDS JOB
 -----------------------
-The issue link in the oDesk job doesn't go to GitHub, it goes to gitDesk interstitial
-- If the contractor is already registered on gitDesk, redirect silently to GitHub issue
-- Else, prompt to link their GH account to oDesk ("so you can get paid automatically for this issue")
-- Then redirect to GH issue
------------------------
-AUTO-PAYMENT
------------------------
-Upon issue close, we figure out whom to pay:
-- If only one pull request, pay him
-- If >1 pull request, pay the last pull requester
-- (Possibly complexity: notify the client and ask them if they want to pay others)
------------------------
-MERGING AND CLOSING
------------------------
-We'll assume that if you accept (i.e. merge) someone's pull request, you pay them (queue up in 2 days).
-No "close and pay" on gitDesk.
-Two exception cases:
-1) You merged but don't want to pay: show pending payment in gitDesk, with "cancel" button
-2) You didn't merge, but you do want to pay: show non-merged pull-requests, with "pay" button
------------------------
-UI PAGES REQUIRED
------------------------
-client auth
-contractor auth
-add issue
-view issue
++ The issue link in the oDesk job doesn't go to GitHub, it goes to gitDesk interstitial
+* Splash screen to register gitDesk
++ Auth GitHub and redirect (to the GitHub issue if known, else back to oDesk job search)

@@ -4,12 +4,12 @@
 
 {% block issues %}
   {% parent %}
+  </br><a class="btn" href="../addissue">Add Issue</a></br>
 {% endblock %}
 
 {% block body %}
 </br>
-
-<h1 style="margin-bottom:10px;">{{ issue.title }}</h1>
+<hr><h1 style="margin-bottom:10px;">{{ issue.title }}</h1>
 <div id="issue" class="well">
   <span style="color: #666;">
 	<p><strong>{{ issue.status }}</strong>&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;Posted&nbsp;{{ issue.posted_on }}&nbsp;&nbsp;-&nbsp;
