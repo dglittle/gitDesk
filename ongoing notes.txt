@@ -1,3 +1,11 @@
+GREG'S PRIORITY LIST:
+#1 - Create Pair and Get Pairs (see required dataset in web.js under )
+#2 - Enable simultaneous authentication
+
+
+
+
+
 -----------------------
        LEGEND
 -----------------------
@@ -10,16 +18,14 @@ Client Stuff
 -----------------------
 AUTH
 -----------------------
-* splash page (step one: auth oDesk, step two: auth GitHub, step three: redirect to "add issue")
-+ put the odesk and github user id's in the session (so that, for instance, the nav can display them)
++ Enable simultaneous authentication of oDesk and GitHub
 
 -----------------------
 ADD ISSUE
 -----------------------
 + Create Issue API (odesk and github)
-+ Add Bounty API (creates odesk job and links it an existing github issue)
-+ Fetch the user's repos, and open issues in each repo
-* Allow selection of repo, and issue within repo
++ Fetch user's gitDesk jobs
++ Add Bounty API (creates odesk job, links it an existing github issue, and edits the issue to show the bounty)
 
 -----------------------
 VIEW ISSUE
