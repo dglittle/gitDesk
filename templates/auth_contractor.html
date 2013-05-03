@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block nav %}{% endblock %}
+
+{% block title %}gitDesk - Link Your GitHub Account{% endblock %}
+
+{% block body %}
+
+<h1 class="oH1Huge">Welcome to gitDesk!</h1>
+<p>With gitDesk, oDesk clients can offer bounties for resolving GitHub issues. If your pull request is merged, you'll be paid automatically! <a href="#">Learn more about gitDesk</a>.</p>
+<a class="oBtn oBtnPrimary oBtnLarge" href="/login">Get started by linking your oDesk account to gitDesk</a>
+<hr>
+<em>Greg: this link needs to be smart. If you came to gitDesk directly, we take you to http://odesk.com/find-work-home/. If you came here by clicking on an issue link in a gitDesk job post, we take you to the GitHub issue.</em>
+{% endblock body %}

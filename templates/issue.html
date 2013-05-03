@@ -55,18 +55,6 @@
   </div>
 </div>
 </br>
-<div id="noteaboutpaying">
-  <article class="oMsg oMsgWarning">
-    <a href="#" class="oBtnCloseSmall"></a>
-    <strong>Greg: thoughts on how paying should work</strong>
-    <p>I has a good talk about this today with Paul, John and Yanni. It seems like it might be tricky to have the client merge the pull request from within our interface. He'll probably have to merge, maybe resolve conflicts, probably do some testing, etc. Two alternatives:</p>
-	<h4>Option One: Auto Pay 2 Days after 'Merge to Master'</h4>
-	<p>Merging to master doesn't mean the client likes the code (since he'll probably do some testing post-merge), but it's a pretty good signal. Maybe you merge, we have GitHub notify us, and we charge you two days later unless we hear from you.</p>
-	<h4>Option Two: Prepay(!)</h4>
-	<p>Similar flow, but maybe you pay when you order. We hold the funds, and two days after you [merge to master / accept the pull request], we release the funds to the developer.</p>
-	<p>Is merging to master the best proxy? What do you think?</p> 
-  </article>
-</div>
 
 
 {% endblock body %}

@@ -76,7 +76,7 @@ _.run(function () {
 
 // ------- ------- ------- ------- APP ROUTES GO HERE ------- ------- ------- -------
 
-	// Splash page and auth
+	// Splash page and auth for clients
 	app.get('/auth', function (req, res) {
 
 		if (res.locals.user.odeskuserid && res.locals.user.githubuserid) {
@@ -87,6 +87,12 @@ _.run(function () {
 		res.render ('auth.html', {
 		})
 	})
+
+	// Splash page and auth for contractors
+    app.get('/auth_contractor', function (req, res) {
+		res.render('auth_contractor.html')
+	})
+
 
 	// Require Login for all pages besides 'auth'
 	function requirelogin(req, res, next) {

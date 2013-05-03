@@ -10,7 +10,7 @@
 	{% for issue in gitDesk_issues %}
 	  <li>
 		{% if thisissue == issue.id %}<strong>
-		{% else %}<a href="issue/{{ issue.id }}">{% endif %}
+		{% else %}<a href="/issue/{{ issue.id }}">{% endif %}
 			{{ issue.title }}
 		{% if thisissue == issue.id %}</strong>
 		{% else %}</a>{% endif %}

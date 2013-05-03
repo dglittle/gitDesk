@@ -52,6 +52,5 @@ Contractor Stuff
 -----------------------
 CONTRACTOR FINDS JOB
 -----------------------
-+ The issue link in the oDesk job doesn't go to GitHub, it goes to gitDesk interstitial
-* Splash screen to register gitDesk
++ The issue link in the oDesk job doesn't go to GitHub, it goes to gitDesk interstitial	
 + Auth GitHub and redirect (to the GitHub issue if known, else back to oDesk job search)
