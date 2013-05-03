@@ -11,6 +11,7 @@
     "node-odesk": "*",
     "passport-github": "*",
     "swig": "*",
+	"consolidate": "*",
     
     "gl519": "git://github.com/dglittle/gl519.git#gh-pages",
     "node-odesk-utils": "git://github.com/dglittle/node-odesk-utils.git"

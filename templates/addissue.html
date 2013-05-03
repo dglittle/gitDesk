@@ -1,4 +1,4 @@
-{% extends 'templates/issues.html' %}
+{% extends 'issues.html' %}
 
 {% block title %}gitDesk - Add Issue{% endblock %}
 
@@ -13,19 +13,17 @@
 
 	<div class="oFormField">
 	  <label class="oLabel">GitHub Repository</label>
-	  <select style="font-size: 14px;">
-		{% for r in gitHub_issues %}
-		  <option>{{r.repo}}</option>
+	  <select id="selectrepo" style="font-size: 14px;">
+		{% for r in repos %}
+		  <option>{{r.name}}</option>
 		{% endfor %}
 	  </select>
 	</div>
 
 	<div class="oFormField">
 	  <label class="oLabel">Issue</label>
-	  <select style="font-size: 14px;">
+	  <select id="selectissue" style="font-size: 14px;">
 	    <option>Create new GitHub issue</option>
-	    <option>- Use existing issue: Make unicode chess pieces white</option>
-	    <option>- Use existing issue: wrap javascript chess AI</option>
 	  </select>
 	</div>	
 
@@ -61,5 +59,24 @@
 		<div class="oHint">"Create Issue" will create a GitHub issue and an oDesk job describing the bounty.</div>
 	</footer>
 </form>
+
+<script>
+
+$(function() {
+	$('#selectrepo').change(function() {
+		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){
+			// alert('blah: '+JSON.stringify(issues))
+			var issues_select = $('#selectissue')
+			_.each(issues, function(i){
+				issues_select.append($('<option/>').text('Use Existing Issue: '+i.title))
+			})
+		})
+		
+	})
+})
+
+</script>
+
+<script src="https://raw.github.com/dglittle/gl519/gh-pages/index.js"></script>
 
 {% endblock body %}

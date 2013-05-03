@@ -28,7 +28,9 @@ module.exports = function (db, app, host, odeskApiKey, odeskApiSecret, githubCli
 		    	name : data.auth_user.first_name + " " + data.auth_user.last_name,
 		    	img : data.info.portrait_100_img,
 		    	country : data.info.location.country,
-		    	profile : data.info.profile_url
+		    	profile : data.info.profile_url,
+				odeskuserid : data.auth_user.uid,
+			 // githubuserid : the github user id's
 		    }
 		    db.collection('users').update({ _id : user._id }, { $set : _.omit(user, '_id') }, { upsert: true }, function (err) {
 		    	if (err) return done(err)
@@ -51,9 +53,22 @@ module.exports = function (db, app, host, odeskApiKey, odeskApiSecret, githubCli
 	app.use(passport.initialize())
 	app.use(passport.session())
 
+	function hackuser(u) {
+		if (!(u))
+			return {}
+		u.githubuserid = 'dglittle';
+		return u
+	}
+	
+	app.use(function(req, res, next) {
+		res.locals.user = hackuser(req.user);
+		res.locals.test = 5;
+		next();
+	})
+
 	app.get('/login', passport.authenticate('oDesk'))
 	app.get('/login-callback', passport.authenticate('oDesk', {
-		successRedirect: '/',
+		successRedirect: '/auth',
 		failureRedirect: '/login'
 	}))
 }

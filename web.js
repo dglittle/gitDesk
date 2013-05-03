@@ -1,4 +1,3 @@
-
 function defaultEnv(key, val) {
     if (!process.env[key])
         process.env[key] = val
@@ -26,19 +25,8 @@ process.on('uncaughtException', function (err) {
     } catch (e) {}
 })
 
+var cons = require('consolidate');
 var swig  = require('swig');
-
-swig.init({
-  allowErrors: false,
-  autoescape: true,
-  cache: true,
-  encoding: 'utf8',
-  filters: {},
-  root: ".",
-  tags: {},
-  extensions: {},
-  tzOffset: 0
-});
 
 var _ = require('gl519')
 _.run(function () {
@@ -55,6 +43,14 @@ _.run(function () {
     var express = require('express')
     var app = express()
 
+	app.engine('.html', cons.swig);
+	app.set('view engine', 'html');
+
+	swig.init({
+	  allowErrors: false,
+	  root: "./templates"
+	});
+
     app.use(express.cookieParser())
     app.use(function (req, res, next) {
         _.run(function () {
@@ -62,6 +58,8 @@ _.run(function () {
             next()
         })
     })
+
+	app.set('views', './templates');
 
     var MongoStore = require('connect-mongo')(express)
     app.use(express.session({
@@ -76,80 +74,71 @@ _.run(function () {
 
     require('./login.js')(db, app, process.env.HOST, process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET, process.env.GITHUB_CLIENT_ID, process.env.GITHUB_CLIENT_SECRET)
 
-/*
-    app.all('*', function (req, res, next) {
-        if (!req.user) {
-            res.redirect('/login')
-        } else {
-            next()
-        }
-    })
-*/
-
 // ------- ------- ------- ------- APP ROUTES GO HERE ------- ------- ------- -------
 
-// Add Issue
-    app.get('/addissue', function (req, res) {
+	// Splash page and auth
+	app.get('/auth', function (req, res) {
 
-		var tmpl = swig.compileFile('templates/addissue.html');
-		res.send(tmpl.render({
-			odeskuserid: 'someodesker',   // Greg: the two user id's are probably in the session, right?
-			githubuserid: 'somegithubuser',
-			gitDesk_issues: [
-			    {
-			        "id"		: 101,
-					"title"		: "make unicode chess pieces white",
-			        "pull_reqs"	: 0
-			    }, 
-			    {
-			        "id"		: 102,
-			        "title"		: "this is our second open issue",
-			        "pull_reqs"	: 1
-			    }
-			],
-			gitHub_issues: [
-			    {
-			        "repo"		: "chessRepo",
-					"issues"	: [
-						{ "title" : "first issue in chessRepo" },
-						{ "title" : "second issue in chessRepo" }
-					]
-				},
-				{
-			        "repo"		: "odeskRepo",
-					"issues"	: [
-						{ "title" : "odeskRepo issue one" },
-						{ "title" : "second issue in odeskRepo" }
-					]
-				}
-			]
-		}))
+		if (res.locals.user.odeskuserid && res.locals.user.githubuserid) {
+			res.redirect('/addissue')
+			return
+		}
+
+		res.render ('auth.html', {
+		})
 	})
 
-// View Issue
-/*
-	Greg - the url would be something like /issues/101
-	and that goes to the "view issue" screen for issue 101
-	I need an "issue" JSON object with the following data:
-		- title
-		- status
-		- posted on (string)
-		- oDesk job URL
-		- bounty
-		- github issue URL
+	// Require Login for all pages besides 'auth'
+	function requirelogin(req, res, next) {
+	    if (!req.user) {
+	        res.redirect('/auth')
+	    } else {
+	        next()
+	    }
+	}
 
-	Also, we need some kind of way for the top section to "know" that we're viewing this issue
-		- I've assumed a global variable 'thisissue' that is set to True when we're viewing a
-		  specific issue (see the code in base.html in the "issues" list)
-		
-*/
+	// Add Issue
+    app.get('/addissue', requirelogin, function (req, res) {
+		_.run(function(){
+			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
 
-    app.get('/issue/101', function (req, res) {
+			res.render('addissue.html', {
+				gitDesk_issues: [
+				    {
+				        "id"		: 101,
+						"title"		: "make unicode chess pieces white",
+				        "pull_reqs"	: 0
+				    }, 
+				    {
+				        "id"		: 102,
+				        "title"		: "this is our second open issue",
+				        "pull_reqs"	: 1
+				    }
+				],
+				repos				: repos,
+				gitHub_issues: [
+				    {
+				        "repo"		: "chessRepo",
+						"issues"	: [
+							{ "title" : "first issue in chessRepo" },
+							{ "title" : "second issue in chessRepo" }
+						]
+					},
+					{
+				        "repo"		: "odeskRepo",
+						"issues"	: [
+							{ "title" : "odeskRepo issue one" },
+							{ "title" : "second issue in odeskRepo" }
+						]
+					}
+				]
+			})
+		})
+	})
 
-		var tmpl = swig.compileFile('templates/issue.html');
-		res.send(tmpl.render({
-			odeskuserid: 'someodesker',
-			githubuserid: 'somegithubuser',
+	// View Issue
+    app.get('/issue/101', requirelogin, function (req, res) {
+		res.render('issue.html', {
 			gitDesk_issues: [
 			    {
 			        "id"		: 101,
@@ -174,18 +163,27 @@ _.run(function () {
 					"description" : "github issue description"  // Greg: I assume you'll pass me a string
 																// that will render here, nicely formatted
 			}
-		}))
+		})
 	})
 
-// Splash page and auth
-    app.get('/auth', function (req, res) {
-
-		var tmpl = swig.compileFile('templates/auth.html');
-		res.send(tmpl.render({
-			odeskuserid: req.query.odeskuserid,
-			githubuserid: req.query.githubuserid
-		}))
+	// Log out link
+    app.get('/logout', function (req, res) {
+		req.session.destroy();
+		res.redirect('/auth');
 	})
+
+// ------- ------- ------- ------- FRONT_END HELPER FUNCTIONS GO HERE ------- ------- ------- -------
+
+	// get issues for a particular repo
+	app.get('/api/getissuesbyrepo', function(req, res) {
+		_.run(function() {
+			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues')
+			res.setHeader('Content-Type', 'application/json; charset=utf-8');
+			res.setHeader('Content-Length', Buffer.byteLength(issues))
+			res.end(issues)
+		})
+	})
+
 
 
 // ------- ------- ------- ------- BELOW HERE IS BACK-END ------- ------- ------- -------
