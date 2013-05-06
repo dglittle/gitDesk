@@ -7,10 +7,10 @@ defaultEnv("HOST", "http://localhost:5000")
 defaultEnv("NODE_ENV", "production")
 defaultEnv("MONGOHQ_URL", "mongodb://localhost:27017/nodesk")
 defaultEnv("SESSION_SECRET", "blahblah")
-defaultEnv("ODESK_API_KEY", "3f448b92c4aaf8918c0106bd164a1656")
-defaultEnv("ODESK_API_SECRET", "e6a71b4f05467054")
+defaultEnv("ODESK_API_KEY", "26739894934be7c046d268680146a8d0")
+defaultEnv("ODESK_API_SECRET", "b694a28f79d55f7b")
 defaultEnv("GITHUB_CLIENT_ID", "c8216b1247ddcf0b1eff")
-defaultEnv("GITHUB_CLIENT_SECRET", "e6a71b4f05467054")
+defaultEnv("GITHUB_CLIENT_SECRET", "7543eff6fc9436e1daaa99e533edafdc5d39720f")
 
 ///
 
@@ -51,6 +51,8 @@ _.run(function () {
 	  root: "./templates"
 	});
 
+	app.set('views', './templates');
+
     app.use(express.cookieParser())
     app.use(function (req, res, next) {
         _.run(function () {
@@ -58,8 +60,6 @@ _.run(function () {
             next()
         })
     })
-
-	app.set('views', './templates');
 
     var MongoStore = require('connect-mongo')(express)
     app.use(express.session({
@@ -72,7 +72,79 @@ _.run(function () {
         })
     }))
 
-    require('./login.js')(db, app, process.env.HOST, process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET, process.env.GITHUB_CLIENT_ID, process.env.GITHUB_CLIENT_SECRET)
+    // login stuff
+	var passport = require('passport')
+    GitHubStrategy = require('passport-github').Strategy
+    OdeskStrategy = require('passport-odesk').Strategy
+
+	passport.use(new GitHubStrategy({
+	        clientID: process.env.GITHUB_CLIENT_ID,
+	        clientSecret: process.env.GITHUB_CLIENT_SECRET,
+	        callbackURL: process.env.HOST + "/auth/github/callback",
+	        customHeaders: { "User-Agent": "gitDesk/1.0" }
+	    },
+	    function(accessToken, refreshToken, profile, done) {
+            return done(null, {
+            	id : profile.username,
+            	accessToken : accessToken,
+            	refreshToken : refreshToken
+            });
+	    }
+	))
+
+	passport.use(new OdeskStrategy({
+	        consumerKey: process.env.ODESK_API_KEY,
+	        consumerSecret: process.env.ODESK_API_SECRET,
+	        callbackURL: process.env.HOST + "/auth/odesk/callback"
+	    },
+	    function(token, tokenSecret, profile, done) {
+            return done(null, {
+            	id : profile.id,
+            	accessToken : token,
+            	tokenSecret : tokenSecret
+            });
+	    }
+	))
+
+	passport.serializeUser(function (user, done) {
+	    done(null, "none");
+	})
+
+	passport.deserializeUser(function (obj, done) {
+	    done(null, {});
+	})    
+
+    app.use(passport.initialize());
+    app.use(passport.session());
+
+    app.use(function (req, res, next) {
+    	req.user = {
+    		odeskuserid : req.session.odesk && req.session.odesk.id,
+    		githubuserid : req.session.github && req.session.github.id
+    	}
+    	res.locals.user = req.user
+        next()
+    })
+
+    app.get('/logout', function (req, res){
+        req.session.odesk = null
+        req.session.github = null
+		req.session.destroy()
+        req.logout()
+        res.redirect('/auth')
+    })
+
+    app.get('/auth/github', passport.authenticate('github'))
+    app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth' }), function(req, res) {
+            req.session.github = req.user
+            res.redirect('/auth')
+        })
+
+    app.get('/auth/odesk', passport.authenticate('odesk'))
+    app.get('/auth/odesk/callback', passport.authenticate('odesk', { failureRedirect: '/' }), function (req, res) {
+            req.session.odesk = req.user
+            res.redirect('/auth')
+        })
 
 // ------- ------- ------- ------- APP ROUTES GO HERE ------- ------- ------- -------
 
@@ -170,12 +242,6 @@ _.run(function () {
 																// that will render here, nicely formatted
 			}
 		})
-	})
-
-	// Log out link
-    app.get('/logout', function (req, res) {
-		req.session.destroy();
-		res.redirect('/auth');
 	})
 
 // ------- ------- ------- ------- FRONT_END HELPER FUNCTIONS GO HERE ------- ------- ------- -------

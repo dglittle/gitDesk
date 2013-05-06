@@ -4,16 +4,21 @@
   "version": "0.0.1",
   "dependencies": {
     "express": "*",
+    
     "mongojs": "*",
+    "connect-mongo": "*",
+
+    "swig": "*",
+	  "consolidate": "*",
+
     "passport": "*",
     "passport-oauth": "*",
-    "connect-mongo": "*",
-    "node-odesk": "*",
     "passport-github": "*",
-    "swig": "*",
-	"consolidate": "*",
+    "passport-odesk": "*",
     
     "gl519": "git://github.com/dglittle/gl519.git#gh-pages",
+
+    "node-odesk": "*",
     "node-odesk-utils": "git://github.com/dglittle/node-odesk-utils.git"
   },
   "engines": {

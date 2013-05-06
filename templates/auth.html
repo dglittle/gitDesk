@@ -7,10 +7,10 @@
 <h1 class="oH1Huge">Welcome to gitDesk!</h1>
 {% if !user.odeskuserid %}
 	<p>Create an issue in GitHub, name a price, and an oDesk developer will resolve it for you!</p>
-	<a class="oBtn oBtnPrimary oBtnLarge" href="/login">Get started by linking your oDesk account to gitDesk</a>
+	<a class="oBtn oBtnPrimary oBtnLarge" href="/auth/odesk">Get started by linking your oDesk account to gitDesk</a>
 {% else if !user.githubuserid %}
 	<p>Welcome, {{ user.odeskuserid }}!</p>
-	<a class="oBtn oBtnPrimary oBtnLarge" href="/addissue">Now just link your GitHub account and you'll be ready</a>
+	<a class="oBtn oBtnPrimary oBtnLarge" href="/auth/github">Now just link your GitHub account and you'll be ready</a>
 {% else %}
 	<a href="/addissue">You're good to go!</a>
 {% endif %}
