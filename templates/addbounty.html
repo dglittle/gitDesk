@@ -63,19 +63,21 @@ $(function() {
 			// alert('blah: '+JSON.stringify(issues))
 			var issues_select = $('#selectissue')
 			_.each(issues, function(i){
-				issues_select.append($('<option/>').text(''+i.title))
+				var title = $('<option/>').text(''+i.title)
+				title.get(0).info = i
+				issues_select.append(title)
 			}) // _.each function
 		}) // .get function
 	}); // .change function
 
 	$('#selectissue').change(function() {
-		$.get('/api/getissuebytitle?title='+$(this).val()+'&repo='+$('#selectrepo').val(), function(issue){
-			alert('blah: '+JSON.stringify(issue))
-			var title = $('#title')
-			var description = $('#description')
-			title.append($text(''+issue.title))
-			description.append($text(''+issue.description))
-		}) // .get function
+		var issue = $(this).find(":selected")[0].info
+		$('#title').val(issue.title)
+		$('#description').val(issue.body)
+		
+//		var description = $('#description')
+//		title.append($text(''+issue.title))
+//		description.append($text(''+issue.description))
 	}); // .change function
 
 	

@@ -1,10 +1,9 @@
 GREG'S PRIORITY LIST:
-#1 - Create Pair and Get Pairs (see required dataset in web.js under )
+#1 - Create Pair (with optional GitHub issue parameter) and Get Pairs (see required dataset in web.js under )
 #2 - Enable simultaneous authentication
 
-
-
-
+* "Claim Job" screen
+* 
 
 -----------------------
        LEGEND
