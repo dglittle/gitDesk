@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}gitDesk - Add Bounty to Existing Issue{% endblock %}
+
+{% block body %}
+<a href="#">&lt;&lt;&nbsp;Back to Open Issues</a><hr>
+<h1>Add Bounty to Existing GitHub Issue</h1>
+
+<form> <!-- class="oFormTop" -->
+	<div class="oFormField">
+	  <label class="oLabel">GitHub Repository</label>
+	  <select id="selectrepo" style="font-size: 14px;">
+		<option>Select Repo:</option>
+		{% for r in repos %}
+		  <option>{{r.name}}</option>
+		{% endfor %}
+	  </select>
+	</div>
+
+	<div class="oFormField">
+	  <label class="oLabel">Issue</label>
+	  <select id="selectissue" style="font-size: 14px;">
+	  </select>
+	</div>	
+
+	<div class="oFormField">
+	    <label class="oLabel" for="title">Title</label>
+	    <input type="text" name="title" id="title" value="" class="oInputText oFormLrg">
+	    <span class="oHint">Be clear! This is how developers will find your issue to work on.</span>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="description">Description</label>
+	    <textarea id="description" name="description" value="" style="font-size:14px;"></textarea>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="skills">Language / Technology</label>
+	    <input type="text" name="skills" id="skills" class="oInputText oFormLrg" value="">
+	    <span class="oHint">Examples: python, javascript  // note: use the oDesk skills auto-suggest widget?</span>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="lrgCls">Bounty</label>
+	    <span>$ </span><input type="text" name="price" id="lrgCls" value="" class="oInputText oInputCurrency">
+	    <span class="oHint">This is the amount you are offering for the successful completion of the work described in this issue.</br>You will <strong>only</strong> pay when you accept a pull request. <a href="#">How does this work?</a></span>
+	</div>
+
+	<footer class="oFormFooter">
+		<div class="oFieldValue">
+			<a class="oBtn oBtnPrimary oBtnLarge" href="addissue">Add Bounty</a>&nbsp;
+			<a class="oBtn oBtnCancel" href="addissue">Cancel</a>
+		</div>
+		<div class="oHint">This will post an oDesk job for this issue, and will append information describing the bounty to the issue on GitHub.</div>
+	</footer>
+</form>
+
+<script>
+
+$(function() {
+	$('#selectrepo').change(function() {
+		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){
+			// alert('blah: '+JSON.stringify(issues))
+			var issues_select = $('#selectissue')
+			_.each(issues, function(i){
+				issues_select.append($('<option/>').text(''+i.title))
+			}) // _.each function
+		}) // .get function
+	}); // .change function
+
+	$('#selectissue').change(function() {
+		$.get('/api/getissuebytitle?title='+$(this).val()+'&repo='+$('#selectrepo').val(), function(issue){
+			alert('blah: '+JSON.stringify(issue))
+			var title = $('#title')
+			var description = $('#description')
+			title.append($text(''+issue.title))
+			description.append($text(''+issue.description))
+		}) // .get function
+	}); // .change function
+
+	
+}) // overall function
+
+
+</script>
+
+<script src="https://raw.github.com/dglittle/gl519/gh-pages/index.js"></script>
+
+{% endblock body %}

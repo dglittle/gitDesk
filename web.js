@@ -181,35 +181,18 @@ _.run(function () {
 			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
 
 			res.render('addissue.html', {
-				gitDesk_issues: [
-				    {
-				        "id"		: 101,
-						"title"		: "make unicode chess pieces white",
-				        "pull_reqs"	: 0
-				    }, 
-				    {
-				        "id"		: 102,
-				        "title"		: "this is our second open issue",
-				        "pull_reqs"	: 1
-				    }
-				],
-				repos				: repos,
-				gitHub_issues: [
-				    {
-				        "repo"		: "chessRepo",
-						"issues"	: [
-							{ "title" : "first issue in chessRepo" },
-							{ "title" : "second issue in chessRepo" }
-						]
-					},
-					{
-				        "repo"		: "odeskRepo",
-						"issues"	: [
-							{ "title" : "odeskRepo issue one" },
-							{ "title" : "second issue in odeskRepo" }
-						]
-					}
-				]
+
+			})
+		})
+	})
+
+	// Add Bounty to Existing Issue
+    app.get('/addbounty', requirelogin, function (req, res) {
+		_.run(function(){
+			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
+
+			res.render('addbounty.html', {
+
 			})
 		})
 	})
@@ -256,6 +239,33 @@ _.run(function () {
 		})
 	})
 
+	// find issue by title
+	function findByTitle (source, title){
+		return $(source.find(":title="+title))
+	}
+
+	// find issue by title
+	function getIssue(issues, key, val) {
+	    var issue = [];
+	    for (var i in issues) {
+			if (i == key && issue[key] == val) {
+	            issue.push(issues);
+	        }
+	    }
+	    return issue[0];
+	}
+
+	// get issue data
+	app.get('/api/getissuebytitle', function(req, res) {
+		_.run(function() {
+			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues');
+			alert('blah: '+JSON.stringify(issues));
+			res.setHeader('Content-Type', 'application/json; charset=utf-8');
+			res.setHeader('Content-Length', Buffer.byteLength(issues));
+			var issue = getIssue(issues, "title", req.query.title);
+			res.end(issue)
+		})
+	})
 
 
 // ------- ------- ------- ------- BELOW HERE IS BACK-END ------- ------- ------- -------
