@@ -10,7 +10,7 @@
 <form> <!-- class="oFormTop" -->
 	<div class="oFormField">
 	  <label class="oLabel">GitHub Repository</label>
-	  <select id="selectrepo" style="font-size: 14px;">
+	  <select id="selectrepo">
 		<option>Select Repo:</option>
 		{% for r in repos %}
 		  <option>{{r.name}}</option>
@@ -20,8 +20,7 @@
 
 	<div class="oFormField">
 	  <label class="oLabel">Issue</label>
-	  <select id="selectissue" style="font-size: 14px;">
-		<option>Select Issue:</option>
+	  <select id="selectissue">
 	  </select>
 	</div>	
 
@@ -58,6 +57,8 @@ $(function() {
 		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){
 			// alert('blah: '+JSON.stringify(issues))
 			var issues_select = $('#selectissue')
+			var title = $('<option/>').text('Select Issue:')
+			issues_select.append(title)
 			_.each(issues, function(i){
 				var title = $('<option/>').text(''+i.title)
 				title.get(0).info = i
