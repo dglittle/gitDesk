@@ -187,6 +187,7 @@ _.run(function () {
     app.get('/addissue', requirelogin, function (req, res) {
 		_.run(function(){
 			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
+//			teams = _.unJson(_.wget('https://www.odesk.com/api/hr/v2/teams.json'))
 
 			res.render('addissue.html', {
 
@@ -286,35 +287,6 @@ _.run(function () {
 			res.json(true)
 		})
 	})
-
-	// find issue by title
-	function findByTitle (source, title){
-		return $(source.find(":title="+title))
-	}
-
-	// find issue by title
-	function getIssue(issues, key, val) {
-	    var issue = [];
-	    for (var i in issues) {
-			if (i == key && issue[key] == val) {
-	            issue.push(issues);
-	        }
-	    }
-	    return issue[0];
-	}
-
-	// get issue data
-	app.get('/api/getissuebytitle', function(req, res) {
-		_.run(function() {
-			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues');
-			alert('blah: '+JSON.stringify(issues));
-			res.setHeader('Content-Type', 'application/json; charset=utf-8');
-			res.setHeader('Content-Length', Buffer.byteLength(issues));
-			var issue = getIssue(issues, "title", req.query.title);
-			res.end(issue)
-		})
-	})
-
 
 // ------- ------- ------- ------- BELOW HERE IS BACK-END ------- ------- ------- -------
 

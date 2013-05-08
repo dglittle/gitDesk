@@ -5,6 +5,14 @@ GREG'S PRIORITY LIST:
 * "Claim Job" screen
 * 
 
+
+
+/api/createpair creates an issue on github. it doesn't create a job yet. To do so, it needs to know what team to put it in.. which means we need an interface for choosing a team.
+
+I added an api for getting the available teams: /api/getteams, and an api for setting a team: /api/setteam?team={companyRef:123,teamRef:456,teamName:"blah"}
+
+(you can just pass the json blob for the team that you get from /api/getteams, and you can access the team from swig as "team")
+
 -----------------------
        LEGEND
 -----------------------

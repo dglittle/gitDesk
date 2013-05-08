@@ -12,20 +12,22 @@
 <form> <!-- class="oFormTop" -->
 
 	<div class="oFormField">
-	  <label class="oLabel">GitHub Repository</label>
-	  <select id="selectrepo" style="font-size: 14px;">
-		{% for r in repos %}
-		  <option>{{r.name}}</option>
+	  <label class="oLabel">oDesk Team</label>
+	  <select id="selectteam">
+		{% for t in teams.teams %}
+		  <option>{{t.name}}</option>
 		{% endfor %}
 	  </select>
 	</div>
 
 	<div class="oFormField">
-	  <label class="oLabel">Issue</label>
-	  <select id="selectissue" style="font-size: 14px;">
-	    <option>Create new GitHub issue</option>
+	  <label class="oLabel">GitHub Repository</label>
+	  <select id="selectrepo">
+		{% for r in repos %}
+		  <option>{{r.name}}</option>
+		{% endfor %}
 	  </select>
-	</div>	
+	</div>
 
 	<div class="oFormField">
 	    <label class="oLabel" for="title">Title</label>
@@ -62,6 +64,17 @@
 <script>
 
 $(function() {
+
+	$(document).ready(function() {
+		$.get('/api/getteams', function(teams){
+			console.log(teams)
+			var teams_select = $('#selectteam')
+			_.each(teams, function(t){
+				teams_select.append($('<option/>').text(''+t.company_name+' > '+t.name))
+			})
+		})
+	})
+
 	$('#selectrepo').change(function() {
 		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){
 			// alert('blah: '+JSON.stringify(issues))
@@ -70,7 +83,6 @@ $(function() {
 				issues_select.append($('<option/>').text('Use Existing Issue: '+i.title))
 			})
 		})
-		
 	})
 
 	$('#createissue').click(function (e) {
