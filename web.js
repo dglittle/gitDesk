@@ -127,7 +127,8 @@ _.run(function () {
     app.use(function (req, res, next) {
     	req.user = {
     		odeskuserid : req.session.odesk && req.session.odesk.id,
-    		githubuserid : req.session.github && req.session.github.id
+    		githubuserid : req.session.github && req.session.github.id,
+    		team : req.session.team
     	}
     	res.locals.user = req.user
         next()
@@ -258,6 +259,13 @@ _.run(function () {
 		})
 	})
 
+	app.all('/api/setteam', function (req, res) {
+		_.run(function () {
+			req.session.team = _.unJson(req.query.team || req.body.team)
+			res.json(true)
+		})
+	})
+
 	// create a job issue pair
 	app.all('/api/createpair', function (req, res) {
 		_.run(function () {
@@ -275,7 +283,7 @@ _.run(function () {
 				body : desc
 			}))
 
-			res.json('ok!')
+			res.json(true)
 		})
 	})
 
