@@ -54,11 +54,17 @@ _.run(function () {
 	app.set('views', './templates');
 
     app.use(express.cookieParser())
+    app.use(express.bodyParser())
+
     app.use(function (req, res, next) {
-        _.run(function () {
-            req.body = _.consume(req)
-            next()
-        })
+    	res.json = function (x) {
+    		if (typeof(x) != 'string')
+    			x = _.json(x) || ''
+			res.setHeader('Content-Type', 'application/json; charset=utf-8')
+			res.setHeader('Content-Length', Buffer.byteLength(x))
+			res.end(x)
+    	}
+    	next()
     })
 
     var MongoStore = require('connect-mongo')(express)
@@ -81,6 +87,7 @@ _.run(function () {
 	        clientID: process.env.GITHUB_CLIENT_ID,
 	        clientSecret: process.env.GITHUB_CLIENT_SECRET,
 	        callbackURL: process.env.HOST + "/auth/github/callback",
+	        scope : ['public_repo'],
 	        customHeaders: { "User-Agent": "gitDesk/1.0" }
 	    },
 	    function(accessToken, refreshToken, profile, done) {
@@ -229,13 +236,46 @@ _.run(function () {
 
 // ------- ------- ------- ------- FRONT_END HELPER FUNCTIONS GO HERE ------- ------- ------- -------
 
+    function getO(req) {
+		var odesk = require('node-odesk-utils')
+		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
+		o.OAuth.accessToken = req.session.odesk.accessToken
+		o.OAuth.accessTokenSecret = req.session.odesk.tokenSecret
+		return o
+    }
+
 	// get issues for a particular repo
 	app.get('/api/getissuesbyrepo', function(req, res) {
 		_.run(function() {
 			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues')
-			res.setHeader('Content-Type', 'application/json; charset=utf-8');
-			res.setHeader('Content-Length', Buffer.byteLength(issues))
-			res.end(issues)
+			res.json(issues)
+		})
+	})
+
+	app.all('/api/getteams', function (req, res) {
+		_.run(function () {
+			res.json(_.p(getO(req).get('hr/v2/teams', _.p())).teams)
+		})
+	})
+
+	// create a job issue pair
+	app.all('/api/createpair', function (req, res) {
+		_.run(function () {
+			var repo = req.query.repo || req.body.repo
+			var title = req.query.title || req.body.title
+			var desc = req.query.description || req.body.description
+			var skills = req.query.skills || req.body.skills
+			var price = 1*(req.query.price || req.body.price)
+
+			// todo: need to create odesk job
+
+			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + repo + '/issues?access_token=' + req.session.github.accessToken
+			var hi = _.wget('POST', u, _.json({
+				title : title,
+				body : desc
+			}))
+
+			res.json('ok!')
 		})
 	})
 

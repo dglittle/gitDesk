@@ -52,7 +52,7 @@
 
 	<footer class="oFormFooter">
 		<div class="oFieldValue">
-			<a class="oBtn oBtnPrimary oBtnLarge" href="addissue">Create Issue</a>&nbsp;
+			<a id="createissue" class="oBtn oBtnPrimary oBtnLarge" href="addissue">Create Issue</a>&nbsp;
 			<a class="oBtn oBtnCancel" href="addissue">Cancel</a>
 		</div>
 		<div class="oHint">"Create Issue" will create a GitHub issue and an oDesk job describing the bounty.</div>
@@ -71,6 +71,19 @@ $(function() {
 			})
 		})
 		
+	})
+
+	$('#createissue').click(function (e) {
+		e.preventDefault()
+		$.post('/api/createpair', {
+			repo : $('#selectrepo').val(),
+			title : $('#title').val(),
+			description : $('#description').val(),
+			skills : $('#skills').val(),
+			price : $('#lrgCls').val()
+		}, function (s) {
+			alert('done!: ' + _.json(s))
+		})
 	})
 })
 
