@@ -3,8 +3,9 @@
 {% block title %}gitDesk - Add Bounty to Existing Issue{% endblock %}
 
 {% block body %}
-<a href="#">&lt;&lt;&nbsp;Back to Open Issues</a><hr>
-<h1>Add Bounty to Existing GitHub Issue</h1>
+<strong><a href="/issues" style="font-size:14px;">&lt;&lt;&nbsp;Back to Issues</a></strong>
+<hr>
+<h1>Add Bounty to Existing Issue</h1>
 
 <form> <!-- class="oFormTop" -->
 	<div class="oFormField">
@@ -20,14 +21,9 @@
 	<div class="oFormField">
 	  <label class="oLabel">Issue</label>
 	  <select id="selectissue" style="font-size: 14px;">
+		<option>Select Issue:</option>
 	  </select>
 	</div>	
-
-	<div class="oFormField">
-	    <label class="oLabel" for="title">Title</label>
-	    <input type="text" name="title" id="title" value="" class="oInputText oFormLrg">
-	    <span class="oHint">Be clear! This is how developers will find your issue to work on.</span>
-	</div>
 
 	<div class="oFormField">
 	    <label class="oLabel" for="description">Description</label>
@@ -72,12 +68,7 @@ $(function() {
 
 	$('#selectissue').change(function() {
 		var issue = $(this).find(":selected")[0].info
-		$('#title').val(issue.title)
 		$('#description').val(issue.body)
-		
-//		var description = $('#description')
-//		title.append($text(''+issue.title))
-//		description.append($text(''+issue.description))
 	}); // .change function
 
 	

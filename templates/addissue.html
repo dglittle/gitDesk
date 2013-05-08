@@ -1,21 +1,18 @@
-{% extends 'issues.html' %}
+{% extends 'base.html' %}
 
 {% block title %}gitDesk - Add Issue{% endblock %}
 
-{% block issues %}
-  {% parent %}
-{% endblock %}
-
 {% block body %}
-</br><hr>
+<strong><a href="/issues" style="font-size:14px;">&lt;&lt;&nbsp;Back to Issues</a></strong>
+<hr>
 <h1>Add Issue</h1>
 <form> <!-- class="oFormTop" -->
 
 	<div class="oFormField">
 	  <label class="oLabel">oDesk Team</label>
 	  <select id="selectteam">
-		{% for t in teams.teams %}
-		  <option>{{t.name}}</option>
+		{% for t in teams %}
+		  <option>{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</option>
 		{% endfor %}
 	  </select>
 	</div>
@@ -65,6 +62,7 @@
 
 $(function() {
 
+/*
 	$(document).ready(function() {
 		$.get('/api/getteams', function(teams){
 			console.log(teams)
@@ -73,7 +71,7 @@ $(function() {
 				teams_select.append($('<option/>').text(''+t.company_name+' > '+t.name))
 			})
 		})
-	})
+	}) */
 
 	$('#selectrepo').change(function() {
 		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){

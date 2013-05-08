@@ -163,7 +163,6 @@ _.run(function () {
 			res.redirect('/addissue')
 			return
 		}
-
 		res.render ('auth.html', {
 		})
 	})
@@ -187,7 +186,7 @@ _.run(function () {
     app.get('/addissue', requirelogin, function (req, res) {
 		_.run(function(){
 			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
-//			teams = _.unJson(_.wget('https://www.odesk.com/api/hr/v2/teams.json'))
+			teams = getTeams(req)
 
 			res.render('addissue.html', {
 
@@ -202,6 +201,27 @@ _.run(function () {
 
 			res.render('addbounty.html', {
 
+			})
+		})
+	})
+
+	// View List of Open Issues
+    app.get('/issues', requirelogin, function (req, res) {
+		_.run(function(){
+
+			res.render('issues.html', {
+				gitDesk_issues: [
+				    {
+				        "id"		: 101,
+						"title"		: "make unicode chess pieces white",
+				        "pull_reqs"	: 2
+				    }, 
+				    {
+				        "id"		: 102,
+				        "title"		: "this is our second open issue",
+				        "pull_reqs"	: 0
+				    }
+				]
 			})
 		})
 	})
@@ -246,6 +266,10 @@ _.run(function () {
 		return o
     }
 
+	function getTeams(req) {
+		return _.p(getO(req).get('hr/v2/teams', _.p())).teams
+	}
+
 	// get issues for a particular repo
 	app.get('/api/getissuesbyrepo', function(req, res) {
 		_.run(function() {
@@ -256,7 +280,7 @@ _.run(function () {
 
 	app.all('/api/getteams', function (req, res) {
 		_.run(function () {
-			res.json(_.p(getO(req).get('hr/v2/teams', _.p())).teams)
+			res.json(getTeams(req))
 		})
 	})
 
