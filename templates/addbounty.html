@@ -23,7 +23,7 @@
 <!-- class="oFormTop" -->
 	<div class="oFormField">
 	  <label class="oLabel">GitHub Repository</label>
-	  <select id="selectrepo">
+	  <select id="selectrepo" name="repo">
 		<option>Select Repo:</option>
 		{% for r in repos %}
 		  <option>{{r.name}}</option>
@@ -36,6 +36,8 @@
 	  <select id="issue" name="issue">
 	  </select>
 	</div>	
+
+	<input type="hidden" name="issuenum" id="issuenum" value="">
 
 	<div class="oFormField">
 	    <label class="oLabel" for="description">Description</label>
@@ -83,14 +85,16 @@ $(function() {
 	$('#issue').change(function() {
 		var issue = $(this).find(":selected")[0].info
 		$('#description').val(issue.body)
+		$('#issuenum').val(issue.number)
 	}); // .change function
 
-	$('#selectteam').change(function() {
-		var team = $(this).find(":selected").attr("teamref")
+	function onSelectTeam() {
+		var team = $('#selectteam').find(":selected").attr("teamref")
 		$('#team').val(team)
-	}); // .change function
+	}
+	$('#selectteam').change(onSelectTeam); // .change function
+	onSelectTeam()
 
-	
 }) // overall function
 
 

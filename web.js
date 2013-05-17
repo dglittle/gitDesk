@@ -199,7 +199,6 @@ _.run(function () {
 		_.run(function(){
 			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
 			teams = getTeams(req)
-			_.print(teams)
 			res.render('addbounty.html', {
 
 			})
@@ -209,6 +208,35 @@ _.run(function () {
 	// Add Bounty to Existing Issue (actually POST the bounty)
     app.post('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
+			var o = getO(req)
+
+		    function getDateFromNow(fromNow) {
+		        var d = new Date(_.time() + fromNow)
+		        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
+		        return zeroPrefix(d.getMonth() + 1) + "-" + zeroPrefix(d.getDate()) + "-" + d.getFullYear()
+		    }
+
+			var jobRef = _.p(o.post('hr/v2/jobs', {
+				buyer_team__reference : req.body.team,
+				category : 'Web Development',
+				subcategory : 'Web Programming',
+				title : req.body.issue,
+				description : req.body.description,
+				budget : req.body.price,
+				visibility : 'private',
+				job_type : 'fixed-price',
+				end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
+			}, _.p())).job.reference
+
+			var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
+
+			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.body.repo + '/issues/' + req.body.issuenum + '?access_token=' + req.session.github.accessToken
+
+			var issue = _.unJson(_.wget(u))
+
+			_.wget('PATCH', u, _.json({
+                body : "I'm offering $" + (1*req.body.price).toFixed(2) + " on oDesk for someone to do this task: " + job.public_url + '\n\n' + issue.body
+			}))
 
 			res.render('confirmbounty.html', {
 				title: req.body.issue,
