@@ -194,13 +194,26 @@ _.run(function () {
 		})
 	})
 
-	// Add Bounty to Existing Issue
+	// Add Bounty to Existing Issue (GET form)
     app.get('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
 			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
-
+			teams = getTeams(req)
+			_.print(teams)
 			res.render('addbounty.html', {
 
+			})
+		})
+	})
+
+	// Add Bounty to Existing Issue (actually POST the bounty)
+    app.post('/addbounty', requirelogin, function (req, res) {
+		_.run(function(){
+
+			res.render('confirmbounty.html', {
+				title: req.body.issue,
+				team: req.body.team,
+				joburl: "http://www.facebook.com"
 			})
 		})
 	})
@@ -280,6 +293,7 @@ _.run(function () {
 
 	app.all('/api/getteams', function (req, res) {
 		_.run(function () {
+			_.print(getTeams(req))
 			res.json(getTeams(req))
 		})
 	})

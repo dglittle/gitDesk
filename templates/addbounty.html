@@ -7,7 +7,20 @@
 <hr>
 <h1>Add Bounty to Existing Issue</h1>
 
-<form> <!-- class="oFormTop" -->
+<form action="/addbounty" method="POST">
+
+	<div class="oFormField">
+	  <label class="oLabel">oDesk Team</label>
+	  <select id="selectteam" name="teamname">
+		{% for t in teams %}
+		  <option teamref="{{t.reference}}">{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</option>
+		{% endfor %}
+	  </select>
+	</div>
+
+	<input type="hidden" name="team" id="team" value="">
+
+<!-- class="oFormTop" -->
 	<div class="oFormField">
 	  <label class="oLabel">GitHub Repository</label>
 	  <select id="selectrepo">
@@ -20,7 +33,7 @@
 
 	<div class="oFormField">
 	  <label class="oLabel">Issue</label>
-	  <select id="selectissue">
+	  <select id="issue" name="issue">
 	  </select>
 	</div>	
 
@@ -43,7 +56,7 @@
 
 	<footer class="oFormFooter">
 		<div class="oFieldValue">
-			<a class="oBtn oBtnPrimary oBtnLarge" href="addissue">Add Bounty</a>&nbsp;
+			<button class="oBtn oBtnPrimary oBtnLarge" type="submit" value-"submit" >Add Bounty</button>&nbsp;
 			<a class="oBtn oBtnCancel" href="addissue">Cancel</a>
 		</div>
 		<div class="oHint">This will post an oDesk job for this issue, and will append information describing the bounty to the issue on GitHub.</div>
@@ -56,7 +69,7 @@ $(function() {
 	$('#selectrepo').change(function() {
 		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){
 			// alert('blah: '+JSON.stringify(issues))
-			var issues_select = $('#selectissue')
+			var issues_select = $('#issue')
 			var title = $('<option/>').text('Select Issue:')
 			issues_select.append(title)
 			_.each(issues, function(i){
@@ -67,9 +80,14 @@ $(function() {
 		}) // .get function
 	}); // .change function
 
-	$('#selectissue').change(function() {
+	$('#issue').change(function() {
 		var issue = $(this).find(":selected")[0].info
 		$('#description').val(issue.body)
+	}); // .change function
+
+	$('#selectteam').change(function() {
+		var team = $(this).find(":selected").attr("teamref")
+		$('#team').val(team)
 	}); // .change function
 
 	
