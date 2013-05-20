@@ -156,6 +156,11 @@ _.run(function () {
 
 // ------- ------- ------- ------- APP ROUTES GO HERE ------- ------- ------- -------
 
+	// home page redirects to /issues
+	app.get('/', function (req, res) {
+		res.redirect('/issues')
+	})
+
 	// Splash page and auth for clients
 	app.get('/auth', function (req, res) {
 

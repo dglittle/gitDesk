@@ -17,27 +17,32 @@
 		{% endfor %}
 	  </select>
 	</div>
+    <input type="hidden" name="team" id="team" value="">
 
-	<input type="hidden" name="team" id="team" value="">
+	<div class="oFormField">
+	    <label class="oLabel" for="issue_url">Enter GitHub Issue URL</label>
+	    <input type="text" name="issue_url" id="issue_url" class="oInputText oFormLrg" placeholder="http://www.github.com/...">
+		<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or...</p>
+	</div>
 
 <!-- class="oFormTop" -->
 	<div class="oFormField">
-	  <label class="oLabel">GitHub Repository</label>
-	  <select id="selectrepo" name="repo">
+	  <label class="oLabel">Select GitHub Repository</label>
+	  <select id="repo" name="repo">
 		<option>Select Repo:</option>
 		{% for r in repos %}
 		  <option>{{r.name}}</option>
 		{% endfor %}
-	  </select>
+	  </select>&nbsp;&nbsp;&nbsp;
+	  <select id="selectissue" name="selectissue" style="display: none;"></select>
 	</div>
 
-	<div class="oFormField">
-	  <label class="oLabel">Issue</label>
-	  <select id="issue" name="issue">
-	  </select>
-	</div>	
+	<input type="hidden" name="issuenum" id="issuenum" value=""><hr>
 
-	<input type="hidden" name="issuenum" id="issuenum" value="">
+	<div class="oFormField">
+	    <label class="oLabel" for="title">Issue Title</label>
+	    <input type="text" id="title" name="title" value="" class="oInputText oFormLrg"></input>
+	</div>
 
 	<div class="oFormField">
 	    <label class="oLabel" for="description">Description</label>
@@ -68,10 +73,11 @@
 <script>
 
 $(function() {
-	$('#selectrepo').change(function() {
+	$('#repo').change(function() {
 		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){
 			// alert('blah: '+JSON.stringify(issues))
-			var issues_select = $('#issue')
+			document.getElementById('selectissue').style.display = 'inline'
+			var issues_select = $('#selectissue')
 			var title = $('<option/>').text('Select Issue:')
 			issues_select.append(title)
 			_.each(issues, function(i){
@@ -82,8 +88,9 @@ $(function() {
 		}) // .get function
 	}); // .change function
 
-	$('#issue').change(function() {
+	$('#selectissue').change(function() {
 		var issue = $(this).find(":selected")[0].info
+		$('#title').val(issue.title)
 		$('#description').val(issue.body)
 		$('#issuenum').val(issue.number)
 	}); // .change function
