@@ -225,7 +225,7 @@ _.run(function () {
 				buyer_team__reference : req.body.team,
 				category : 'Web Development',
 				subcategory : 'Web Programming',
-				title : req.body.issue,
+				title : req.body.title,
 				description : req.body.description,
 				budget : req.body.price,
 				visibility : 'private',
@@ -244,9 +244,9 @@ _.run(function () {
 			}))
 
 			res.render('confirmbounty.html', {
-				title: req.body.issue,
+				title: req.body.title,
 				team: req.body.team,
-				joburl: "http://www.facebook.com"
+				joburl: job.public_url
 			})
 		})
 	})
