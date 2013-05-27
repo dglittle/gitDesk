@@ -5,19 +5,10 @@
 {% block body %}
 <strong><a href="/issues" style="font-size:14px;">&lt;&lt;&nbsp;Back to Issues</a></strong>
 <hr>
-<h1>Add Bounty to Existing Issue</h1>
+<h1 class="oH1">Add Bounty to Existing Issue</h1>
+<p>Select any existing GitHub issue, enter the price you're willing to pay, and a job will be posted on oDesk to get it done!</p></br>
 
 <form action="/addbounty" method="POST">
-
-	<div class="oFormField">
-	  <label class="oLabel">oDesk Team</label>
-	  <select id="selectteam" name="teamname">
-		{% for t in teams %}
-		  <option teamref="{{t.reference}}">{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</option>
-		{% endfor %}
-	  </select>
-	</div>
-    <input type="hidden" name="team" id="team" value="">
 
 	<div class="oFormField">
 	    <label class="oLabel" for="issue_url">Enter GitHub Issue URL</label>
@@ -28,13 +19,13 @@
 <!-- class="oFormTop" -->
 	<div class="oFormField">
 	  <label class="oLabel">Select GitHub Repository</label>
-	  <select id="repo" name="repo">
+	  <select id="repo" name="repo" class="oFormMed valid">
 		<option>Select Repo:</option>
 		{% for r in repos %}
 		  <option>{{r.name}}</option>
 		{% endfor %}
 	  </select>&nbsp;&nbsp;&nbsp;
-	  <select id="selectissue" name="selectissue" style="display: none;"></select>
+	  <select id="selectissue" name="selectissue" class="oFormMed valid" style="display: none;"></select>
 	</div>
 
 	<input type="hidden" name="issuenum" id="issuenum" value=""><hr>
@@ -60,6 +51,18 @@
 	    <span>$ </span><input type="text" name="price" id="lrgCls" value="" class="oInputText oInputCurrency">
 	    <span class="oHint">This is the amount you are offering for the successful completion of the work described in this issue.</br>You will <strong>only</strong> pay when you accept a pull request. <a href="#">How does this work?</a></span>
 	</div>
+
+	<div class="oFormField">
+	  <label class="oLabel">oDesk Team</label>
+	  <select id="selectteam" name="teamname" class="oFormMed valid">
+		{% for t in teams %}
+		  <option teamref="{{t.reference}}">{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</option>
+		{% endfor %}
+	  </select>
+	  <span class="oHint">Which team would you like to post this job in?</span>
+	</div>
+    <input type="hidden" name="team" id="team" value="">
+    <input type="hidden" name="githubissueurl" id="githubissueurl" value="">
 
 	<footer class="oFormFooter">
 		<div class="oFieldValue">
@@ -91,6 +94,7 @@ $(function() {
 	$('#selectissue').change(function() {
 		var issue = $(this).find(":selected")[0].info
 		$('#title').val(issue.title)
+		$('#githubissueurl').val(issue.html_url)
 		$('#description').val(issue.body)
 		$('#issuenum').val(issue.number)
 	}); // .change function

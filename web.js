@@ -165,7 +165,7 @@ _.run(function () {
 	app.get('/auth', function (req, res) {
 
 		if (res.locals.user.odeskuserid && res.locals.user.githubuserid) {
-			res.redirect('/addissue')
+			res.redirect('/issues')
 			return
 		}
 		res.render ('auth.html', {
@@ -180,9 +180,9 @@ _.run(function () {
 
 	// Require Login for all pages besides 'auth'
 	function requirelogin(req, res, next) {
-	    if (!req.user) {
+	    if (!req.user || !req.user.githubuserid || !req.user.odeskuserid) {
 	        res.redirect('/auth')
-	    } else {
+		} else {
 	        next()
 	    }
 	}
@@ -203,7 +203,8 @@ _.run(function () {
     app.get('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
 			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
-			teams = getTeams(req)
+			t = getTeams(req)
+			teams = t.sort(sort_by('company_name', false, function(a){return a.toUpperCase()}))
 			res.render('addbounty.html', {
 
 			})
@@ -221,12 +222,26 @@ _.run(function () {
 		        return zeroPrefix(d.getMonth() + 1) + "-" + zeroPrefix(d.getDate()) + "-" + d.getFullYear()
 		    }
 
+			if (req.body.description.length > 200) {
+				var more = "... "
+				} else var more = ""
+
+			var description =	"Resolve the following GitHub issue:" + '\n\n'
+								+ req.body.githubissueurl + '\n\n'
+								+ "To apply, please answer the following questions:" + '\n'
+								+ "1) What is your GitHub ID?" + '\n'
+								+ "2) How long do you think it will take you to resolve this issue?" + '\n\n\n'
+								+ "********************************************" + '\n'
+								+ "The GitHub issue body begins as follows:" + '\n\n'
+								+ req.body.description.substring(0,200) + more
+			
+
 			var jobRef = _.p(o.post('hr/v2/jobs', {
 				buyer_team__reference : req.body.team,
 				category : 'Web Development',
 				subcategory : 'Web Programming',
 				title : req.body.title,
-				description : req.body.description,
+				description : description,
 				budget : req.body.price,
 				visibility : 'private',
 				job_type : 'fixed-price',
@@ -240,11 +255,16 @@ _.run(function () {
 			var issue = _.unJson(_.wget(u))
 
 			_.wget('PATCH', u, _.json({
-                body : "I'm offering $" + (1*req.body.price).toFixed(2) + " on oDesk for someone to do this task: " + job.public_url + '\n\n' + issue.body
+                body : 	"********************************************" + '\n' +
+						"I'm offering $" + (1*req.body.price).toFixed(2) + " on oDesk for someone to do this task: "
+						+ job.public_url + '\n'
+						+ "********************************************" + '\n\n'
+						+ issue.body
 			}))
 
 			res.render('confirmbounty.html', {
 				title: req.body.title,
+				description: description,
 				team: req.body.team,
 				joburl: job.public_url
 			})
@@ -303,6 +323,15 @@ _.run(function () {
 	})
 
 // ------- ------- ------- ------- FRONT_END HELPER FUNCTIONS GO HERE ------- ------- ------- -------
+
+	var sort_by = function(field, reverse, primer){
+	   var key = function (x) {return primer ? primer(x[field]) : x[field]};
+
+	   return function (a,b) {
+		  var A = key(a), B = key(b);
+		  return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1,1][+!!reverse];                  
+	   }
+	}
 
     function getO(req) {
 		var odesk = require('node-odesk-utils')
