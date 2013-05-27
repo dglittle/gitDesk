@@ -333,6 +333,10 @@ _.run(function () {
 	   }
 	}
 
+	function parseGitHubURL(req) {
+		var url = req.url
+	}
+
     function getO(req) {
 		var odesk = require('node-odesk-utils')
 		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
@@ -350,6 +354,35 @@ _.run(function () {
 		_.run(function() {
 			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues')
 			res.json(issues)
+		})
+	})
+
+	app.get('/api/getissuebyurl', function(req, res) {
+		_.run(function() {
+			var url = req.query.url
+			var u = url.match(/^[^:]*:\/\/(www\.)?([^\/]+)(\/.*)$/)
+
+			// make sure it's at least a github URL
+			if (u[2] != 'github.com') { res.send(False) }
+			for (var i = 0; i < u.length;i++) { console.log("u["+i+"] ="+u[i])}
+
+			var components = []
+			var matched = null
+			var i = 0
+			var regex = /(?:[^\/\\]+|\\.)+/g
+
+			while (matched = regex.exec(u[3])) {
+				components[i] = matched[0]
+				i++
+			}
+
+			var uid = components[0]
+			var repo = components[1]
+			var issuenum = components[3]
+			var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum
+			console.log(url)
+			var issue = _.wget(url)
+			res.json(issue)
 		})
 	})
 

@@ -93,21 +93,32 @@ $(function() {
 
 	$('#selectissue').change(function() {
 		var issue = $(this).find(":selected")[0].info
+		selectIssue(issue)
+	}); // .change function
+
+    function selectIssue(issue) {
 		$('#title').val(issue.title)
 		$('#githubissueurl').val(issue.html_url)
 		$('#description').val(issue.body)
-		$('#issuenum').val(issue.number)
-	}); // .change function
+		$('#issuenum').val(issue.number)	
+	};
 
-	function onSelectTeam() {
+	$('#issue_url').change(function() {
+		issueURL = $(this).val()
+
+		$.get('/api/getissuebyurl?url='+issueURL, function(issue) {
+			if (!issue) { console.log('undefined') }
+			else { selectIssue(issue) }
+		})
+	});
+
+	$('#selectteam').change(function() {
 		var team = $('#selectteam').find(":selected").attr("teamref")
 		$('#team').val(team)
-	}
-	$('#selectteam').change(onSelectTeam); // .change function
-	onSelectTeam()
+	}); // .change function
+
 
 }) // overall function
-
 
 </script>
 
