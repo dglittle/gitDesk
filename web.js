@@ -6,6 +6,7 @@ defaultEnv("PORT", 5000)
 defaultEnv("HOST", "http://localhost:5000")
 defaultEnv("NODE_ENV", "production")
 defaultEnv("MONGOHQ_URL", "mongodb://localhost:27017/nodesk")
+defaultEnv("MONGOLAB_URI", "mongodb://heroku_app15964223:vdr3an8d6eu86cdd2k3ivhgsuv@ds027908.mongolab.com:27908/heroku_app15964223")
 defaultEnv("SESSION_SECRET", "blahblah")
 defaultEnv("ODESK_API_KEY", "26739894934be7c046d268680146a8d0")
 defaultEnv("ODESK_API_SECRET", "b694a28f79d55f7b")
@@ -31,8 +32,7 @@ var swig  = require('swig');
 var _ = require('gl519')
 _.run(function () {
 
-    var db = require('mongojs').connect(process.env.MONGOHQ_URL, ['users'])
-	console.log(db)
+    var db = require('mongojs').connect(process.env.MONGOHQ_URL || process.env.MONGOLAB_URI, ['users'])
 
     db.createCollection('logs', {capped : true, size : 10000}, function () {})
     logError = function (err, notes) {
