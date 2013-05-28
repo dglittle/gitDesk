@@ -32,6 +32,7 @@ var _ = require('gl519')
 _.run(function () {
 
     var db = require('mongojs').connect(process.env.MONGOHQ_URL, ['users'])
+	console.log(json(db))
 
     db.createCollection('logs', {capped : true, size : 10000}, function () {})
     logError = function (err, notes) {
