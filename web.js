@@ -11,6 +11,7 @@ defaultEnv("ODESK_API_KEY", "26739894934be7c046d268680146a8d0")
 defaultEnv("ODESK_API_SECRET", "b694a28f79d55f7b")
 defaultEnv("GITHUB_CLIENT_ID", "c8216b1247ddcf0b1eff")
 defaultEnv("GITHUB_CLIENT_SECRET", "7543eff6fc9436e1daaa99e533edafdc5d39720f")
+defaultEnv("SOCIAL_AUTH_REDIRECT_IS_HTTPS", True)
 
 ///
 
@@ -149,7 +150,7 @@ _.run(function () {
         })
 
     app.get('/auth/odesk', passport.authenticate('odesk'))
-    app.get('/auth/odesk/callback', passport.authenticate('odesk', { failureRedirect: '/' }), function (req, res) {
+    app.get('/auth/odesk/callback', passport.authenticate('odesk', { failureRedirect: '/auth' }), function (req, res) {
             req.session.odesk = req.user
             res.redirect('/auth')
         })
