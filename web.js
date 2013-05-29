@@ -2,8 +2,8 @@ function defaultEnv(key, val) {
     if (!process.env[key])
         process.env[key] = val
 }
-if (!process.env.PORT) { defaultEnv("PORT", 5000) }
-if (!process.env.HOST) { defaultEnv("HOST", "http://localhost:5000") }
+
+defaultEnv("HOST", "http://warm-everglades-8745.herokuapp.com")
 defaultEnv("NODE_ENV", "production")
 defaultEnv("MONGOHQ_URL", "mongodb://heroku:002b3a960fa76ec10fde5a75ea5c85ab@hydra.mongohq.com:10013/app15964223" || "mongodb://localhost:27017/nodesk")
 defaultEnv("SESSION_SECRET", "blahblah")
@@ -425,7 +425,8 @@ _.run(function () {
 
     app.use(express.static(__dirname + '/static'));
 
-    app.listen(process.env.PORT, function() {
+	var port = process.env.PORT || 5000
+    app.listen(port, function() {
         console.log("go to " + process.env.HOST)
     })
 
