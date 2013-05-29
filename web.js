@@ -144,7 +144,7 @@ _.run(function () {
     })
 
     app.get('/auth/github', passport.authenticate('github'))
-    app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth' }), function(req, res) {
+    app.get('/auth/github/callback/', passport.authenticate('github', { failureRedirect: '/auth' }), function(req, res) {
             req.session.github = req.user
             res.redirect('/auth')
         })
