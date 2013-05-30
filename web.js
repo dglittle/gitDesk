@@ -149,7 +149,7 @@ _.run(function () {
         })
 
     app.get('/auth/odesk', passport.authenticate('odesk'))
-    app.get('/auth/odesk/callbackURLback', passport.authenticate('odesk', { failureRedirect: '/auth' }), function (req, res) {
+    app.get('/auth/odesk/callback', passport.authenticate('odesk', { failureRedirect: '/auth' }), function (req, res) {
             req.session.odesk = req.user
             res.redirect('/auth')
         })
