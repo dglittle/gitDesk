@@ -143,7 +143,7 @@ _.run(function () {
     })
 
     app.get('/auth/github', passport.authenticate('github'))
-    app.all('/auth/github/callback/', passport.authenticate('github', { failureRedirect: '/auth' }), function(req, res) {
+    app.all('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth' }), function(req, res) {
             req.session.github = req.user
             res.redirect('/auth')
         })
