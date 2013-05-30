@@ -364,7 +364,6 @@ _.run(function () {
 
 			// make sure it's at least a github URL
 			if (u[2] != 'github.com') { res.send(False) }
-			for (var i = 0; i < u.length;i++) { console.log("u["+i+"] ="+u[i])}
 
 			var components = []
 			var matched = null
@@ -380,7 +379,6 @@ _.run(function () {
 			var repo = components[1]
 			var issuenum = components[3]
 			var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum
-			console.log(url)
 			var issue = _.wget(url)
 			res.json(issue)
 		})
