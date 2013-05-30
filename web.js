@@ -143,13 +143,13 @@ _.run(function () {
     })
 
     app.get('/auth/github', passport.authenticate('github'))
-    app.get('/auth/github/callback/', passport.authenticate('github', { failureRedirect: '/auth' }), function(req, res) {
+    app.all('/auth/github/callback/', passport.authenticate('github', { failureRedirect: '/auth' }), function(req, res) {
             req.session.github = req.user
             res.redirect('/auth')
         })
 
     app.get('/auth/odesk', passport.authenticate('odesk'))
-    app.get('/auth/odesk/callback', passport.authenticate('odesk', { failureRedirect: '/auth' }), function (req, res) {
+    app.get('/auth/odesk/callbackURLback', passport.authenticate('odesk', { failureRedirect: '/auth' }), function (req, res) {
             req.session.odesk = req.user
             res.redirect('/auth')
         })
