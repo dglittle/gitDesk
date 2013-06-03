@@ -190,7 +190,7 @@ _.run(function () {
 	// Add Issue
     app.get('/addissue', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
+			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos?access_token=' + req.session.github.accessToken))
 			teams = getTeams(req)
 
 			res.render('addissue.html', {
@@ -202,7 +202,7 @@ _.run(function () {
 	// Add Bounty to Existing Issue (GET form)
     app.get('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos'))
+			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos?access_token=' + req.session.github.accessToken))
 			t = getTeams(req)
 			teams = t.sort(sort_by('company_name', false, function(a){return a.toUpperCase()}))
 			res.render('addbounty.html', {
@@ -352,7 +352,7 @@ _.run(function () {
 	// get issues for a particular repo
 	app.get('/api/getissuesbyrepo', function(req, res) {
 		_.run(function() {
-			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues')
+			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues' + '?access_token=' + req.session.github.accessToken)
 			res.json(issues)
 		})
 	})
@@ -378,7 +378,7 @@ _.run(function () {
 			var uid = components[0]
 			var repo = components[1]
 			var issuenum = components[3]
-			var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum
+			var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum + '?access_token=' + req.session.github.accessToken
 			var issue = _.wget(url)
 			res.json(issue)
 		})
