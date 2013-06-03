@@ -3,14 +3,15 @@ function defaultEnv(key, val) {
         process.env[key] = val
 }
 
-defaultEnv("HOST", "https://warm-everglades-8745.herokuapp.com")
+defaultEnv("HOST", "http://localhost:5000")
 defaultEnv("NODE_ENV", "production")
-defaultEnv("MONGOHQ_URL", "mongodb://heroku:002b3a960fa76ec10fde5a75ea5c85ab@hydra.mongohq.com:10013/app15964223" || "mongodb://localhost:27017/nodesk")
+defaultEnv("MONGOHQ_URL", "mongodb://localhost:27017/nodesk")
 defaultEnv("SESSION_SECRET", "blahblah")
 defaultEnv("ODESK_API_KEY", "26739894934be7c046d268680146a8d0")
 defaultEnv("ODESK_API_SECRET", "b694a28f79d55f7b")
 defaultEnv("GITHUB_CLIENT_ID", "afac24e8db03a7fa0a77")
 defaultEnv("GITHUB_CLIENT_SECRET", "7bbdd03486da99eb1abbadde511867ff97e64330")
+// change the odesk and github ID's and Secret's to what they were before
 
 ///
 
@@ -359,25 +360,16 @@ _.run(function () {
 
 	app.get('/api/getissuebyurl', function(req, res) {
 		_.run(function() {
-			var url = req.query.url
-			var u = url.match(/^[^:]*:\/\/(www\.)?([^\/]+)(\/.*)$/)
+			
+//			https://github.com/mdlevinson/Experimentation/issues/5     (may or may not have 'www.')
+			var m = req.query.url.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
 
 			// make sure it's at least a github URL
-			if (u[2] != 'github.com') { res.send(False) }
+			if (!m) { res.send(false) }
 
-			var components = []
-			var matched = null
-			var i = 0
-			var regex = /(?:[^\/\\]+|\\.)+/g
-
-			while (matched = regex.exec(u[3])) {
-				components[i] = matched[0]
-				i++
-			}
-
-			var uid = components[0]
-			var repo = components[1]
-			var issuenum = components[3]
+			var uid = m[1]
+			var repo = m[2]
+			var issuenum = m[3]
 			var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum + '?access_token=' + req.session.github.accessToken
 			var issue = _.wget(url)
 			res.json(issue)
