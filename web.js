@@ -3,17 +3,16 @@ function defaultEnv(key, val) {
         process.env[key] = val
 }
 
+defaultEnv("PORT", 5000)
 defaultEnv("HOST", "http://localhost:5000")
 defaultEnv("NODE_ENV", "production")
 defaultEnv("MONGOHQ_URL", "mongodb://localhost:27017/nodesk")
 defaultEnv("SESSION_SECRET", "blahblah")
 defaultEnv("ODESK_API_KEY", "26739894934be7c046d268680146a8d0")
 defaultEnv("ODESK_API_SECRET", "b694a28f79d55f7b")
-defaultEnv("GITHUB_CLIENT_ID", "afac24e8db03a7fa0a77")
-defaultEnv("GITHUB_CLIENT_SECRET", "7bbdd03486da99eb1abbadde511867ff97e64330")
-// change the odesk and github ID's and Secret's to what they were before
-
-///
+defaultEnv("GITHUB_CLIENT_ID", "c8216b1247ddcf0b1eff")
+defaultEnv("GITHUB_CLIENT_SECRET", "7543eff6fc9436e1daaa99e533edafdc5d39720f")
+// change the odesk IDs so they're different?
 
 function logError(err, notes) {
     console.log('error: ' + (err.stack || err))
@@ -28,8 +27,8 @@ process.on('uncaughtException', function (err) {
 
 var cons = require('consolidate');
 var swig  = require('swig');
-
 var _ = require('gl519')
+
 _.run(function () {
 
     var db = require('mongojs').connect(process.env.MONGOHQ_URL, ['users'])
