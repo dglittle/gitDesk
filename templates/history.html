@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}gitDesk{% endblock %}
+
+{% block body %}
+
+<table>
+	<tr>
+		<th>oDesk User ID</th>
+		<th>GitHub User ID</th>
+		<th>oDesk Job URL</th>
+		<th>GitHub Issue URL</th>
+	</tr>
+{% for h in history %}
+	<tr>
+		<td>{{h.odesk.uid}}</td>
+		<td>{{h.github.uid}}</td>
+		<td>{{h.odesk.job_url}}</td>
+		<td>{{h.github.issue_url}}</td>
+	</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}
