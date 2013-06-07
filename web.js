@@ -271,23 +271,24 @@ _.run(function () {
 		})
 	})
 
+	// View Issue Confirmation
+    app.get('/confirm', requirelogin, function (req, res) {
+		_.run(function(){
+			res.render('confirmbounty.html', {
+				title: "Issue Title" , // req.body.title,
+				description: "This is the description of the issue", // description,
+				team: "" , // req.body.team,
+				joburl: "http://www.google.com" // job.public_url
+			})
+		})
+	})
+
 	// View List of Open Issues
     app.get('/issues', requirelogin, function (req, res) {
 		_.run(function(){
 
 			res.render('issues.html', {
-				gitDesk_issues: [
-				    {
-				        "id"		: 101,
-						"title"		: "make unicode chess pieces white",
-				        "pull_reqs"	: 2
-				    }, 
-				    {
-				        "id"		: 102,
-				        "title"		: "this is our second open issue",
-				        "pull_reqs"	: 0
-				    }
-				]
+				gitDesk_issues: []
 			})
 		})
 	})

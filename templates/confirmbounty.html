@@ -4,11 +4,25 @@
 
 {% block issues %}
 
-<p>Congratulations, you have posted a bounty!</p>
+<article class="oMsg oMsgSuccess">
+Congratulations, you have posted a bounty! <a href="{{joburl}}">View your job here</a>.
+</article>
 
-<p>The job title is: {{title}}<p>
-<p>The job description is: {{description}}</p>
-<p>The team is: {{team}}</p>
-<p>Your job is <a href="{{joburl}}">here</a><p>
+{% if team %}
+<div class="oFormField">
+    <label class="oLabel">Team</label>
+    <div class="oFieldValue"><label class="oOptLbl">{{team}}</label></div>
+</div>
+{% endif %}
+
+<div class="oFormField">
+    <label class="oLabel">Job Title</label>
+    <div class="oFieldValue"><label class="oOptLbl">{{title}}</label></div>
+</div>
+
+<div class="oFormField">
+    <label class="oLabel">Job Description</label>
+    <div class="oFieldValue"><label class="oOptLbl">{{description}}</label></div>
+</div>
 
 {% endblock %}
