@@ -111,8 +111,6 @@ $(function() {
 		$.get('/api/getissuebyurl?url='+issueURL, function(issue) {
 			if (!issue) { console.log('undefined') }
 			else {
-				console.log("issue.number = "+issue.number)
-				console.log("issue.repo = "+issue.repo)
 				selectIssue(issue)
 			}
 		})

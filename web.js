@@ -250,8 +250,6 @@ _.run(function () {
 
 			var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
 
-			console.log(req.body)
-
 			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.body.repo_var + '/issues/' + req.body.issuenum + '?access_token=' + req.session.github.accessToken
 
 			var issue = _.unJson(_.wget(u))
@@ -263,9 +261,6 @@ _.run(function () {
 						+ "********************************************" + '\n\n'
 						+ issue.body
 			}))
-			console.log("s =" +s)
-			console.log("u =" +u)
-			console.log("accessToken ="+req.session.github.accessToken)
 
 			res.render('confirmbounty.html', {
 				title: req.body.title,
