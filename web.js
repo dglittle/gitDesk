@@ -35,7 +35,7 @@ _.run(function () {
 
     db.createCollection('logs', {capped : true, size : 10000}, function () {})
     logError = function (err, notes) {
-        console.log('error: ' + (err.stack || err))
+        console.log('error: ' + (err.stack || _.json(err)))
         console.log('notes: ' + _.json(notes))
         db.collection('logs').insert({ error : '' + (err.stack || err), notes : notes })
     }
@@ -250,17 +250,22 @@ _.run(function () {
 
 			var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
 
-			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.body.repo + '/issues/' + req.body.issuenum + '?access_token=' + req.session.github.accessToken
+			console.log(req.body)
+
+			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.body.repo_var + '/issues/' + req.body.issuenum + '?access_token=' + req.session.github.accessToken
 
 			var issue = _.unJson(_.wget(u))
 
-			_.wget('PATCH', u, _.json({
+			var s = _.wget('PATCH', u, _.json({
                 body : 	"********************************************" + '\n' +
 						"I'm offering $" + (1*req.body.price).toFixed(2) + " on oDesk for someone to do this task: "
 						+ job.public_url + '\n'
 						+ "********************************************" + '\n\n'
 						+ issue.body
 			}))
+			console.log("s =" +s)
+			console.log("u =" +u)
+			console.log("accessToken ="+req.session.github.accessToken)
 
 			res.render('confirmbounty.html', {
 				title: req.body.title,
@@ -370,7 +375,8 @@ _.run(function () {
 			var repo = m[2]
 			var issuenum = m[3]
 			var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum + '?access_token=' + req.session.github.accessToken
-			var issue = _.wget(url)
+			var issue = _.unJson(_.wget(url))
+			issue.repo = repo
 			res.json(issue)
 		})
 	})

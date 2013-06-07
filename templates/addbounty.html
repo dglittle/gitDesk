@@ -28,7 +28,8 @@
 	  <select id="selectissue" name="selectissue" class="oFormMed valid" style="display: none;"></select>
 	</div>
 
-	<input type="hidden" name="issuenum" id="issuenum" value=""><hr>
+	<input type="hidden" name="issuenum" id="issuenum" value="">
+	<input type="hidden" name="repo_var" id="repo_var" value=""><hr>
 
 	<div class="oFormField">
 	    <label class="oLabel" for="title">Issue Title</label>
@@ -101,6 +102,7 @@ $(function() {
 		$('#githubissueurl').val(issue.html_url)
 		$('#description').val(issue.body)
 		$('#issuenum').val(issue.number)	
+		$("#repo_var").val(issue.repo)
 	};
 
 	$('#issue_url').change(function() {
@@ -108,7 +110,11 @@ $(function() {
 
 		$.get('/api/getissuebyurl?url='+issueURL, function(issue) {
 			if (!issue) { console.log('undefined') }
-			else { selectIssue(issue) }
+			else {
+				console.log("issue.number = "+issue.number)
+				console.log("issue.repo = "+issue.repo)
+				selectIssue(issue)
+			}
 		})
 	});
 
