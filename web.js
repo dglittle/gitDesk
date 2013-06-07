@@ -284,6 +284,18 @@ _.run(function () {
 		})
 	})
 
+	// print jobs posted on gitDesk
+    app.get('/admin/history', requirelogin, function (req, res) {
+		_.run(function(){
+			var history = _.p(db.collection("posts").find().toArray(_.p()))
+			console.log(history)
+			res.render('history.html', {
+				history: history
+			})
+		})
+	})
+
+
 	// record the posting of a bounty
 	function logBounty(post) {
 		_.p(db.collection("posts").insert(post, _.p()))
