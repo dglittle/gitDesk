@@ -4,7 +4,7 @@
 
 {% block body %}
 
-<table>
+<table class="table table-striped table-hover">
 	<tr>
 		<th>oDesk User ID</th>
 		<th>GitHub User ID</th>
@@ -15,8 +15,8 @@
 	<tr>
 		<td>{{h.odesk.uid}}</td>
 		<td>{{h.github.uid}}</td>
-		<td>{{h.odesk.job_url}}</td>
-		<td>{{h.github.issue_url}}</td>
+		<td><a href="{{h.odesk.job_url}}">oDesk Job</a></td>
+		<td><a href="{{h.github.issue_url}}">GitHub Issue</a></td>
 	</tr>
 {% endfor %}
 
