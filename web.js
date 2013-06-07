@@ -262,6 +262,19 @@ _.run(function () {
 						+ issue.body
 			}))
 
+			var post = {
+				odesk: {
+					uid: req.session.odesk.id,
+					job_url: job.public_url,
+				},
+				github: {
+					uid: req.session.github.id,
+					issue_url: req.body.githubissueurl
+				}
+			}
+
+			logBounty(post)
+
 			res.render('confirmbounty.html', {
 				title: req.body.title,
 				description: description,
@@ -270,6 +283,12 @@ _.run(function () {
 			})
 		})
 	})
+
+	// record the posting of a bounty
+	function logBounty(post) {
+		_.p(db.collection("posts").insert(post, _.p()))
+	}
+
 
 	// View Issue Confirmation
     app.get('/confirm', requirelogin, function (req, res) {
