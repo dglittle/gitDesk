@@ -435,6 +435,8 @@ _.run(function () {
 
 			// get the companies this user is in
 			var companies = getCompanies(req)
+			
+			// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
 
 			var j = []
 			var jobs = []
@@ -442,7 +444,9 @@ _.run(function () {
 
 			// get all jobs the user has access to and put them in an array
 			for (var i = 0; i < c_length; i++) {
-				j.push(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + companies[i].company__reference + '&status=open&page=0;100', _.p())).jobs.job)
+				try {
+					j.push(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + companies[i].company__reference + '&status=open&page=0;100', _.p())).jobs.job)	
+				} catch (e) { _.print('oDesk API failed to get jobs') }
 			}
 
 			var c = 0
