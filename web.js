@@ -440,50 +440,45 @@ _.run(function () {
 
 			var j = []
 			var jobs = []
-			var c_length = companies.length
 
 			// get all jobs the user has access to and put them in an array
-			for (var i = 0; i < c_length; i++) {
+			_.each(companies, function(company) {
 				try {
-					j.push(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + companies[i].company__reference + '&status=open&page=0;100', _.p())).jobs.job)	
+					j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + company.company__reference + '&status=open&page=0;100', _.p())).jobs.job)
 				} catch (e) { _.print('oDesk API failed to get jobs') }
-			}
+				_.print('get jobs done')
+			})
 
-			var c = 0
+			_.each(j,function(j){
 
-			for (var i = 0; i < j.length; i++) {
-				if (j[i]) {
-					var company = j[i][0].buyer_company__reference 
-//					console.log('Company ' + company + ' has ' + j[i].length + ' jobs')
+				// only add github issues to the object
+				if(j) {
+					var m = j.description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
 
-					for (var k = 0; k < j[i].length; k++) {
+					if (m && j.status == 'open') {
+						var job = {}
 
-						// only add github issues to the object
-						var m = j[i][k].description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
-						if (m && j[i][k].status == 'open') {
-							jobs[c] = {}
-							jobs[c].company = company
+						job.company = j.buyer_company__reference
 
-							// company name, prettified
-							var c_name = j[i][k].buyer_company__name
-							var t_name = j[i][k].buyer_team__name
-							if (t_name != c_name) { c_name = c_name + ' > ' + t_name }
-							jobs[c].company_name = c_name
+						// company name, prettified
+						var c_name = j.buyer_company__name
+						var t_name = j.buyer_team__name
+						if (t_name != c_name) { c_name = c_name + ' > ' + t_name }
+						job.company_name = c_name
 
-							jobs[c].opening = j[i][k].reference
-							jobs[c].title = j[i][k].title
-							jobs[c].description = j[i][k].description
-							jobs[c].odesk_url = j[i][k].public_url
-							jobs[c].github_url = 'http://' + m[0]
-							jobs[c].status = j[i][k].status
-							jobs[c].candidates = j[i][k].num_candidates
-							jobs[c].candidates_new = j[i][k].num_new_candidates
-							jobs[c].ats_url = 'https://www.odesk.com/jobs/' + jobs[c].opening + '/applications?applicants'
-							c++
-						}
+						job.opening = j.reference
+						job.title = j.title
+						job.description = j.description
+						job.odesk_url = j.public_url
+						job.github_url = 'http://' + m[0]
+						job.status = j.status
+						job.candidates = j.num_candidates
+						job.candidates_new = j.num_new_candidates
+						job.ats_url = 'https://www.odesk.com/jobs/' + job.opening + '/applications?applicants'
+						jobs.push(job)
 					}
 				}
-			}
+			})
 
 			res.render('jobs.html', {
 				jobs: jobs
