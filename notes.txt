@@ -14,6 +14,13 @@ Add Bounty (Post Job)
 
 
 
+getOpenIssues
+- Find all open jobs posted by / accessible by this user on oDesk, populate into an array
+- Figure out which ones have a github url
+- Find all issues posted by this user in gitDesk
+
+
+
 
 
 

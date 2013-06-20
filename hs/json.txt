@@ -1,0 +1,41 @@
+{
+	"company": "49041", 
+	"opening": "202587329", 
+	"title": "A New Test Issue", 
+	"description": "Resolve the following... ", 
+	"url": "github.com/mdlevinson/Experimentation/issues/4"
+}
+
+
+{ visibility: 'public',
+status: 'open',
+skills: 'software-qa-testing,black-box-testing,',
+public_url: 'https://www.odesk.com/jobs/~015ffc1befd9003a9d',
+budget: '',
+reference: '202238228',
+keep_open_on_hire: '',
+num_candidates: '146',
+start_date: '1369699200000',
+num_new_candidates: '85',
+filled_date: '',
+category: 'Web Development',
+attachment_file_url: '',
+off_the_network: '',
+buyer_company__reference: '118',
+buyer_team__reference: '1321',
+num_active_candidates: '104',
+created_time: '1362072895000',
+last_candidacy_access_time: '',
+duration: '364',
+created_by_name: 'Debra Dooley',
+description: 'Looking for...',
+buyer_company__name: 'oDesk',
+subcategory: 'Website QA',
+job_type: 'hourly',
+buyer_team__name: 'oDesk Development',
+buyer_team__id: 'odeskdev',
+end_date: '',
+title: 'QA Engineer',
+cancelled_date: '',
+created_by: 'debra-dooley' }
+

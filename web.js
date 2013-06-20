@@ -295,13 +295,6 @@ _.run(function () {
 		})
 	})
 
-
-	// record the posting of a bounty
-	function logBounty(post) {
-		_.p(db.collection("posts").insert(post, _.p()))
-	}
-
-
 	// View Issue Confirmation
     app.get('/confirm', requirelogin, function (req, res) {
 		_.run(function(){
@@ -324,6 +317,7 @@ _.run(function () {
 		})
 	})
 
+
 	// View Issue
     app.get('/issue/101', requirelogin, function (req, res) {
 		res.render('issue.html', {
@@ -332,11 +326,6 @@ _.run(function () {
 			        "id"		: 101,
 					"title"		: "make unicode chess pieces white",
 			        "pull_reqs"	: 2
-			    }, 
-			    {
-			        "id"		: 102,
-			        "title"		: "this is our second open issue",
-			        "pull_reqs"	: 0
 			    }
 			],
 			issue: {
@@ -354,40 +343,8 @@ _.run(function () {
 		})
 	})
 
-// ------- ------- ------- ------- FRONT_END HELPER FUNCTIONS GO HERE ------- ------- ------- -------
 
-	var sort_by = function(field, reverse, primer){
-	   var key = function (x) {return primer ? primer(x[field]) : x[field]};
-
-	   return function (a,b) {
-		  var A = key(a), B = key(b);
-		  return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1,1][+!!reverse];                  
-	   }
-	}
-
-	function parseGitHubURL(req) {
-		var url = req.url
-	}
-
-    function getO(req) {
-		var odesk = require('node-odesk-utils')
-		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
-		o.OAuth.accessToken = req.session.odesk.accessToken
-		o.OAuth.accessTokenSecret = req.session.odesk.tokenSecret
-		return o
-    }
-
-	function getTeams(req) {
-		return _.p(getO(req).get('hr/v2/teams', _.p())).teams
-	}
-
-	// get issues for a particular repo
-	app.get('/api/getissuesbyrepo', function(req, res) {
-		_.run(function() {
-			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues' + '?access_token=' + req.session.github.accessToken)
-			res.json(issues)
-		})
-	})
+// ------- ------- ------- ------- API FUNCTIONS GO HERE ------- ------- ------- -------
 
 	app.get('/api/getissuebyurl', function(req, res) {
 		_.run(function() {
@@ -422,24 +379,111 @@ _.run(function () {
 		})
 	})
 
-	// create a job issue pair
-	app.all('/api/createpair', function (req, res) {
-		_.run(function () {
-			var repo = req.query.repo || req.body.repo
-			var title = req.query.title || req.body.title
-			var desc = req.query.description || req.body.description
-			var skills = req.query.skills || req.body.skills
-			var price = 1*(req.query.price || req.body.price)
+	// get issues for a particular repo
+	app.get('/api/getissuesbyrepo', function(req, res) {
+		_.run(function() {
+			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues' + '?access_token=' + req.session.github.accessToken)
+			res.json(issues)
+		})
+	})
 
-			// todo: need to create odesk job
+	// ------- ------- ------- ------- HELPER FUNCTIONS GO HERE ------- ------- ------- -------
 
-			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + repo + '/issues?access_token=' + req.session.github.accessToken
-			var hi = _.wget('POST', u, _.json({
-				title : title,
-				body : desc
-			}))
+	// record the posting of a bounty
+	function logBounty(post) {
+		_.p(db.collection("posts").insert(post, _.p()))
+	}
 
-			res.json(true)
+	var sort_by = function(field, reverse, primer){
+	   var key = function (x) {return primer ? primer(x[field]) : x[field]};
+
+	   return function (a,b) {
+		  var A = key(a), B = key(b);
+		  return ( (A < B) ? -1 : ((A > B) ? 1 : 0) ) * [-1,1][+!!reverse];                  
+	   }
+	}
+
+	function getO(req) {
+		var odesk = require('node-odesk-utils')
+		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
+		o.OAuth.accessToken = req.session.odesk.accessToken
+		o.OAuth.accessTokenSecret = req.session.odesk.tokenSecret
+		return o
+	}
+
+	function getTeams(req) {
+		return _.p(getO(req).get('hr/v2/teams', _.p())).teams
+	}
+
+	function getCompanies(req) {
+		var teams = _.p(getO(req).get('hr/v2/teams', _.p())).teams
+		var companies = []
+		var j = 0
+
+		for (var i = 0; i < teams.length; i++) {
+			if (teams[i].company__reference == teams[i].reference) {
+				companies.push(teams[i])
+				j++
+			}
+		}
+		return companies
+	}
+
+	// View List of Open Issues
+    app.get('/jobs', requirelogin, function (req, res) {
+		_.run(function(){
+
+			// get the companies this user is in
+			var companies = getCompanies(req)
+
+			var j = []
+			var jobs = []
+			var c_length = companies.length
+
+			// get all jobs the user has access to and put them in an array
+			for (var i = 0; i < c_length; i++) {
+				j.push(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + companies[i].company__reference + '&status=open&page=0;100', _.p())).jobs.job)
+			}
+
+			var c = 0
+
+			for (var i = 0; i < j.length; i++) {
+				if (j[i]) {
+					var company = j[i][0].buyer_company__reference 
+//					console.log('Company ' + company + ' has ' + j[i].length + ' jobs')
+
+					for (var k = 0; k < j[i].length; k++) {
+
+						// only add github issues to the object
+						var m = j[i][k].description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
+						if (m && j[i][k].status == 'open') {
+							jobs[c] = {}
+							jobs[c].company = company
+
+							// company name, prettified
+							var c_name = j[i][k].buyer_company__name
+							var t_name = j[i][k].buyer_team__name
+							if (t_name != c_name) { c_name = c_name + ' > ' + t_name }
+							jobs[c].company_name = c_name
+
+							jobs[c].opening = j[i][k].reference
+							jobs[c].title = j[i][k].title
+							jobs[c].description = j[i][k].description
+							jobs[c].odesk_url = j[i][k].public_url
+							jobs[c].github_url = 'http://' + m[0]
+							jobs[c].status = j[i][k].status
+							jobs[c].candidates = j[i][k].num_candidates
+							jobs[c].candidates_new = j[i][k].num_new_candidates
+							jobs[c].ats_url = 'https://www.odesk.com/jobs/' + jobs[c].opening + '/applications?applicants'
+							c++
+						}
+					}
+				}
+			}
+
+			res.render('jobs.html', {
+				jobs: jobs
+			})
 		})
 	})
 
@@ -453,3 +497,14 @@ _.run(function () {
     })
 
 })
+
+
+
+
+
+
+
+
+
+
+
