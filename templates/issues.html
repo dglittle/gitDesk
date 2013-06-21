@@ -2,27 +2,30 @@
 
 {% block title %}gitDesk{% endblock %}
 
-{% block issues %}
-  <div class="sourceExample">
-	<h1>Open Issues&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;"></span></h1>
+{% block issues %}<div class="sourceExample">
 
-	<ul class="oPlainList">
-	{% for issue in gitDesk_issues %}
-	  <li>
-		{% if thisissue == issue.id %}<strong>
-		{% else %}<a href="/issue/{{ issue.id }}">{% endif %}
-			{{ issue.title }}
-		{% if thisissue == issue.id %}</strong>
-		{% else %}</a>{% endif %}
-		{% if issue.pull_reqs > 0 %}
-		  <span class="label label-info" style="height:20px"><h3>{{ issue.pull_reqs }}&nbsp;pull request{% if issue.pull_reqs > 1 %}s{% endif %}</h3></span>
-		{% endif %}
-	  </li>
-	{% endfor %}
-	</ul></br>   
+	<h1>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;">Jobs with linked issues</span></h1>
 
-	<a disabled class="oBtn oBtnPrimary oBtnLarge" href="">Create New GitHub Issue</a>&nbsp;&nbsp;&nbsp;or&nbsp;&nbsp;&nbsp;
-	<a class="oBtn oBtnPrimary oBtnLarge" href="../addbounty">Add Bounty to Existing GitHubIssue</a>
-  
-  </div>
-{% endblock %}
+	{% if jobs %}
+		{% for job in jobs %}
+		<h1 class="oH5 oHInline">{{ job.title }}</h1><span class="oNull">
+			<a href="{{ job.github_url }}" style="color: inherit">{{ job.github_url }}</a></span></br>
+		<a href="{{ job.ats_url }}">{{ job.candidates }} applicants</a>
+			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ job.odesk_url }}">view job on oDesk</a></br></br>
+		{% endfor %}
+	{% else %}<i>No open bounties</i>{% endif %}
+
+	<a class="oBtn oBtnPrimary" href="../addbounty">Add Bounty</a>
+	</br></br></br></br>
+	<h1>Active Jobs&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;">Issues you have hired someone to resolve</span></h1>
+	{% if contracts %}
+		{% for contract in contracts %}
+		<h1 class="oH5 oHInline">{{ contract.title }}</h1><span class="oNull">
+			<a href="{{ contract.github_url }}" style="color: inherit">{{ contract.github_url }}</a></span></br>
+			{{ contract.contractor }}&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ contract.odesk_url }}">view job on oDesk</a>
+			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#">Close and Pay</a>
+			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#">Cancel Job</a></br></br>
+		{% endfor %}
+  	{% else %}<i>No active jobs</i>{% endif %}
+
+  </div>{% endblock %}

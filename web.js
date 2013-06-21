@@ -310,36 +310,19 @@ _.run(function () {
 	// View List of Open Issues
     app.get('/issues', requirelogin, function (req, res) {
 		_.run(function(){
-
+			var jobs = getoDeskJobs(req)
+			var contracts = getoDeskContracts(req)
 			res.render('issues.html', {
-				gitDesk_issues: []
+				jobs: jobs,
+				contracts: [
+					{
+						contractor: "Michael Levinson",
+						title: "Name of GitHub Issue",
+						github_url: "http://www.github.com/123",
+						odesk_url: "http://www.odesk.com/123"
+					}
+				]
 			})
-		})
-	})
-
-
-	// View Issue
-    app.get('/issue/101', requirelogin, function (req, res) {
-		res.render('issue.html', {
-			gitDesk_issues: [
-			    {
-			        "id"		: 101,
-					"title"		: "make unicode chess pieces white",
-			        "pull_reqs"	: 2
-			    }
-			],
-			issue: {
-			        "id"		: 101,
-					"title"		: "make unicode chess pieces white",
-					"status"	: "Open",
-					"posted_on" : "11 hours ago",
-					"bounty"	: "$13.00",
-					"gh_url"	: "http://www.github.com/dglittle/advanced-chess/issues/5",
-					"odesk_url"	: "https://www.odesk.com/jobs/make-unicode-chess-pieces-look-white_~~e8233e3fddb85354",
-			        "pull_reqs"	: 2,
-					"description" : "github issue description"  // Greg: I assume you'll pass me a string
-																// that will render here, nicely formatted
-			}
 		})
 	})
 
@@ -429,62 +412,118 @@ _.run(function () {
 		return companies
 	}
 
-	// View List of Open Issues
-    app.get('/jobs', requirelogin, function (req, res) {
-		_.run(function(){
+	function getCompanies(req) {
+		var teams = _.p(getO(req).get('hr/v2/teams', _.p())).teams
+		var companies = []
+		var j = 0
 
-			// get the companies this user is in
-			var companies = getCompanies(req)
-			
-			// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
+		for (var i = 0; i < teams.length; i++) {
+			if (teams[i].company__reference == teams[i].reference) {
+				companies.push(teams[i])
+				j++
+			}
+		}
+		return companies
+	}
 
-			var j = []
-			var jobs = []
 
-			// get all jobs the user has access to and put them in an array
-			_.each(companies, function(company) {
-				try {
-					j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + company.company__reference + '&status=open&page=0;100', _.p())).jobs.job)
-				} catch (e) { _.print('oDesk API failed to get jobs') }
-				_.print('get jobs done')
-			})
+    function getoDeskJobs(req) {
+	
+		// get the companies this user is in
+		var companies = getCompanies(req)
+		
+		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
+		var j = []
+		var jobs = []
 
-			_.each(j,function(j){
-
-				// only add github issues to the object
-				if(j) {
-					var m = j.description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
-
-					if (m && j.status == 'open') {
-						var job = {}
-
-						job.company = j.buyer_company__reference
-
-						// company name, prettified
-						var c_name = j.buyer_company__name
-						var t_name = j.buyer_team__name
-						if (t_name != c_name) { c_name = c_name + ' > ' + t_name }
-						job.company_name = c_name
-
-						job.opening = j.reference
-						job.title = j.title
-						job.description = j.description
-						job.odesk_url = j.public_url
-						job.github_url = 'http://' + m[0]
-						job.status = j.status
-						job.candidates = j.num_candidates
-						job.candidates_new = j.num_new_candidates
-						job.ats_url = 'https://www.odesk.com/jobs/' + job.opening + '/applications?applicants'
-						jobs.push(job)
-					}
-				}
-			})
-
-			res.render('jobs.html', {
-				jobs: jobs
-			})
+		// get all jobs the user has access to and put them in an array
+		_.each(companies, function(company) {
+			try {
+				j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + company.company__reference + '&status=open&page=0;100', _.p())).jobs.job)
+			} catch (e) { _.print('oDesk API failed to get jobs') }
 		})
-	})
+
+		_.each(j,function(j){
+
+			// only add github issues to the object
+			if(j) {
+				var m = j.description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
+
+				if (m && j.status == 'open') {
+					var job = {}
+
+					job.company = j.buyer_company__reference
+
+					// company name, prettified
+					var c_name = j.buyer_company__name
+					var t_name = j.buyer_team__name
+					if (t_name != c_name) { c_name = c_name + ' > ' + t_name }
+					job.company_name = c_name
+
+					job.opening = j.reference
+					job.title = j.title
+					job.description = j.description
+					job.odesk_url = j.public_url
+					job.github_url = 'http://' + m[0]
+					job.status = j.status
+					job.candidates = j.num_candidates
+					job.candidates_new = j.num_new_candidates
+					job.ats_url = 'https://www.odesk.com/jobs/' + job.opening + '/applications?applicants'
+					jobs.push(job)
+				}
+			}
+		})
+		return jobs
+	}
+
+    function getoDeskContracts(req) {
+	
+		// get the companies this user is in
+		var companies = getCompanies(req)
+		
+		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
+		var contracts = []
+
+		// get all jobs the user has access to and put them in an array
+		try {
+			var c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200', _.p())).engagements.engagement
+		} catch (e) { _.print('oDesk API failed to get contracts') }
+		_.print(c)
+
+		_.each(c,function(c){
+
+			// only add github issues to the object
+			// MATCH UP WITH GITDESK LOGGING — ONLY WAY TO FIGURE OUT WHICH CONTRACTS POINT TO GITDESK BOUNTIES!
+			if(c) {
+				var m = c.description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
+
+				if (m && j.status == 'open') {
+					var job = {}
+
+					job.company = j.buyer_company__reference
+
+					// company name, prettified
+					var c_name = j.buyer_company__name
+					var t_name = j.buyer_team__name
+					if (t_name != c_name) { c_name = c_name + ' > ' + t_name }
+					job.company_name = c_name
+
+					job.opening = j.reference
+					job.title = j.title
+					job.description = j.description
+					job.odesk_url = j.public_url
+					job.github_url = 'http://' + m[0]
+					job.status = j.status
+					job.candidates = j.num_candidates
+					job.candidates_new = j.num_new_candidates
+					job.ats_url = 'https://www.odesk.com/jobs/' + job.opening + '/applications?applicants'
+					jobs.push(job)
+				}
+			}
+		})
+
+		return contracts
+	}
 
 // ------- ------- ------- ------- BELOW HERE IS BACK-END ------- ------- ------- -------
 
