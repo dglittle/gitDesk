@@ -322,14 +322,16 @@ _.run(function () {
 			var contracts = getoDeskContracts(req)
 			res.render('issues.html', {
 				jobs: jobs,
-				contracts: [
+				contracts: contracts
+				
+				/* [
 					{
 						contractor: "Michael Levinson",
 						title: "Name of GitHub Issue",
 						github_url: "http://www.github.com/123",
 						odesk_url: "http://www.odesk.com/123"
 					}
-				]
+				] */
 			})
 		})
 	})
@@ -419,30 +421,79 @@ _.run(function () {
 	function getCompanies(req) {
 		var teams = _.p(getO(req).get('hr/v2/teams', _.p())).teams
 		var companies = []
-		var j = 0
 
-		for (var i = 0; i < teams.length; i++) {
-			if (teams[i].company__reference == teams[i].reference) {
-				companies.push(teams[i])
-				j++
+		_.each(teams, function(team) {
+			if (team.company__reference == team.reference) {
+				companies.push(team)
 			}
-		}
+		})
 		return companies
 	}
+	
+	function getCompanyByTeam(teams, team) {
+		var company
 
-	function getCompanies(req) {
+		_.each(teams, function(t) {
+			if (t.reference == team) {
+				_.print('t = ')
+				_.print(t)
+				_.print('team = ')
+				_.print(team)
+				_.print('t.company__reference = ')
+				_.print(t.company__reference)
+				company = t.company__reference
+			}
+		})
+		
+		return company
+	}
+
+
+	function getCompaniesAndTeams(req) {
 		var teams = _.p(getO(req).get('hr/v2/teams', _.p())).teams
 		var companies = []
-		var j = 0
 
-		for (var i = 0; i < teams.length; i++) {
-			if (teams[i].company__reference == teams[i].reference) {
-				companies.push(teams[i])
-				j++
+		_.each(teams, function(team) {
+			if (team.company__reference == team.reference) {
+				companies.push({
+					company: team.reference,
+					company_name: team.company_name
+				})
 			}
-		}
+		})
+		
+		_.print('just companies so far:')
+		_.print(companies)
+
+		_.each(companies, function(company) {
+			company.teams = []
+			_.each(teams, function(team) {
+				if (team.company__reference == company.company) {
+					company.teams.push({
+						team: team.reference,
+						team_name: team.name
+					})
+				}				
+			})
+		})
+
 		return companies
 	}
+
+
+	// test get companies and teams
+	app.get('/getteams', function(req, res) {
+		_.run(function() {
+			var array = getCompaniesAndTeams(req)
+
+//			console.log(array) 
+
+			res.render('test.html', {
+				array: array
+			})
+
+		})
+	})
 
 
     function getoDeskJobs(req) {
@@ -495,10 +546,8 @@ _.run(function () {
 	}
 
     function getoDeskContracts(req) {
-	
-		// get the companies this user is in
-		var companies = getCompanies(req)  // change to not require permission in the parent team
-		var contracts = []
+		var teams = getTeams(req)
+		contracts = []
 
 		// get all jobs the user has access to and put them in an array
 		try { var c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200', _.p())).engagements.engagement } catch (e) { 
@@ -507,23 +556,40 @@ _.run(function () {
 
 		_.each(c,function(c) {       // only show contracts that link to a gitDesk job
 			if(c) {
-				db.collection("posts").findOne( { "odesk.uid" : req.session.odesk.uid, "odesk.recno" : c.job__reference }, function(e, result) {
-					if(e) {
-						console.log('error')
-					} else if (result) {
-						console.log(result)
-						var contract = {
-							title: 'job title',
-							contractor: 'michael levinson'
+
+				db.collection("posts").findOne( { "odesk.recno" : c.job__reference }, function(err, doc) {
+
+					if(doc) {
+						//	var cc = _.p(getO(req).get('hr/v2/engagements/' + jobref + '.json', _.p())).engagement
+
+						try { var company = getCompanyByTeam(teams, c.buyer_team__reference) } catch(e) {
+							_.print('getCompanyByTeam did not work')
 						}
-						contracts.push(contract)
+
+						_.print('company = ' + company)
+						var contract = {
+							title : c.engagement_title,
+							contractor : c.provider__id,
+							github_url : doc.github.issue_url,
+							odesk_url : 'http://www.odesk.com/e/' + company + '/contracts/' + c.reference,
+							recno : c.reference,
+							company : company
+						}
+
+						_.print('Here is the contract object:')
+						_.print(contract)
+
 					}
+
+				if (contract) { contracts.push(contract) }
+				
 				})
+					// _.p(db.collection("posts").findOne( { "odesk.recno" : jobref } ), _.p())
 			}
 		})
-		console.log(contracts)
+
 		return contracts
-	}
+	} 
 
 // ------- ------- ------- ------- BELOW HERE IS BACK-END ------- ------- ------- -------
 
@@ -535,14 +601,3 @@ _.run(function () {
     })
 
 })
-
-
-
-
-
-
-
-
-
-
-
