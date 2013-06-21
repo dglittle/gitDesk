@@ -266,6 +266,7 @@ _.run(function () {
 				odesk: {
 					uid: req.session.odesk.id,
 					job_url: job.public_url,
+					recno: jobRef
 				},
 				github: {
 					uid: req.session.github.id,
@@ -287,7 +288,14 @@ _.run(function () {
 	// print jobs posted on gitDesk
     app.get('/admin/history', requirelogin, function (req, res) {
 		_.run(function(){
-			var history = _.p(db.collection("posts").find().toArray(_.p()))
+			_.print('the filter posted ' + req.query.oDeskUserID)
+			if (req.query.oDeskUserID) {
+				var history = getGitDeskJobs(req.query.oDeskUserID) } else {
+				var history = getGitDeskJobs()
+			}
+			
+//			var history = _.p(db.collection("posts").find().toArray(_.p()))
+
 			console.log(history)
 			res.render('history.html', {
 				history: history
@@ -375,6 +383,16 @@ _.run(function () {
 	// record the posting of a bounty
 	function logBounty(post) {
 		_.p(db.collection("posts").insert(post, _.p()))
+	}
+	
+	function getGitDeskJobs() {
+		if (arguments[0]) {
+			var uid = arguments[0]
+			_.print('uid = ' + uid)
+			return _.p(db.collection("posts").find( { "odesk.uid" : uid } ).toArray(_.p()))
+		} else {
+			return _.p(db.collection("posts").find().toArray(_.p()))
+		}
 	}
 
 	var sort_by = function(field, reverse, primer){
@@ -479,49 +497,31 @@ _.run(function () {
     function getoDeskContracts(req) {
 	
 		// get the companies this user is in
-		var companies = getCompanies(req)
-		
-		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
+		var companies = getCompanies(req)  // change to not require permission in the parent team
 		var contracts = []
 
 		// get all jobs the user has access to and put them in an array
-		try {
-			var c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200', _.p())).engagements.engagement
-		} catch (e) { _.print('oDesk API failed to get contracts') }
-		_.print(c)
+		try { var c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200', _.p())).engagements.engagement } catch (e) { 
+			_.print('oDesk API failed to get contracts')
+		} // sort by time created descending
 
-		_.each(c,function(c){
-
-			// only add github issues to the object
-			// MATCH UP WITH GITDESK LOGGING — ONLY WAY TO FIGURE OUT WHICH CONTRACTS POINT TO GITDESK BOUNTIES!
+		_.each(c,function(c) {       // only show contracts that link to a gitDesk job
 			if(c) {
-				var m = c.description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
-
-				if (m && j.status == 'open') {
-					var job = {}
-
-					job.company = j.buyer_company__reference
-
-					// company name, prettified
-					var c_name = j.buyer_company__name
-					var t_name = j.buyer_team__name
-					if (t_name != c_name) { c_name = c_name + ' > ' + t_name }
-					job.company_name = c_name
-
-					job.opening = j.reference
-					job.title = j.title
-					job.description = j.description
-					job.odesk_url = j.public_url
-					job.github_url = 'http://' + m[0]
-					job.status = j.status
-					job.candidates = j.num_candidates
-					job.candidates_new = j.num_new_candidates
-					job.ats_url = 'https://www.odesk.com/jobs/' + job.opening + '/applications?applicants'
-					jobs.push(job)
-				}
+				db.collection("posts").findOne( { "odesk.uid" : req.session.odesk.uid, "odesk.recno" : c.job__reference }, function(e, result) {
+					if(e) {
+						console.log('error')
+					} else if (result) {
+						console.log(result)
+						var contract = {
+							title: 'job title',
+							contractor: 'michael levinson'
+						}
+						contracts.push(contract)
+					}
+				})
 			}
 		})
-
+		console.log(contracts)
 		return contracts
 	}
 
