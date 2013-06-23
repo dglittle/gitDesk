@@ -323,15 +323,14 @@ _.run(function () {
 			res.render('issues.html', {
 				jobs: jobs,
 				contracts: contracts
-				
-				/* [
-					{
-						contractor: "Michael Levinson",
-						title: "Name of GitHub Issue",
-						github_url: "http://www.github.com/123",
-						odesk_url: "http://www.odesk.com/123"
-					}
-				] */
+			})
+		})
+	})
+
+	// Page to Test APIs
+    app.get('/apitest', requirelogin, function (req, res) {
+		_.run(function(){
+			res.render('apitest.html', {
 			})
 		})
 	})
@@ -369,6 +368,14 @@ _.run(function () {
 		_.run(function () {
 			req.session.team = _.unJson(req.query.team || req.body.team)
 			res.json(true)
+		})
+	})
+	
+	app.all('/api/getodeskjobs', function (req, res) {
+		_.run(function () {
+			var a = getoDeskJobs(req)
+			_.print(a)
+			res.json(a)
 		})
 	})
 
@@ -434,17 +441,8 @@ _.run(function () {
 		var company
 
 		_.each(teams, function(t) {
-			if (t.reference == team) {
-				_.print('t = ')
-				_.print(t)
-				_.print('team = ')
-				_.print(team)
-				_.print('t.company__reference = ')
-				_.print(t.company__reference)
-				company = t.company__reference
-			}
+			if (t.reference == team) { company = t.company__reference }
 		})
-		
 		return company
 	}
 
@@ -461,9 +459,6 @@ _.run(function () {
 				})
 			}
 		})
-		
-		_.print('just companies so far:')
-		_.print(companies)
 
 		_.each(companies, function(company) {
 			company.teams = []
@@ -547,47 +542,47 @@ _.run(function () {
 
     function getoDeskContracts(req) {
 		var teams = getTeams(req)
-		contracts = []
+		var contracts = []
+		var c = []
 
 		// get all jobs the user has access to and put them in an array
-		try { var c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200', _.p())).engagements.engagement } catch (e) { 
+		try { c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200', _.p())).engagements.engagement } catch (e) { 
 			_.print('oDesk API failed to get contracts')
 		} // sort by time created descending
 
 		_.each(c,function(c) {       // only show contracts that link to a gitDesk job
 			if(c) {
-
+				
 				db.collection("posts").findOne( { "odesk.recno" : c.job__reference }, function(err, doc) {
 
 					if(doc) {
-						//	var cc = _.p(getO(req).get('hr/v2/engagements/' + jobref + '.json', _.p())).engagement
+						// _.print(doc)
 
 						try { var company = getCompanyByTeam(teams, c.buyer_team__reference) } catch(e) {
 							_.print('getCompanyByTeam did not work')
 						}
 
-						_.print('company = ' + company)
-						var contract = {
-							title : c.engagement_title,
-							contractor : c.provider__id,
-							github_url : doc.github.issue_url,
-							odesk_url : 'http://www.odesk.com/e/' + company + '/contracts/' + c.reference,
-							recno : c.reference,
-							company : company
-						}
+						// _.print('company = ' + company)
 
-						_.print('Here is the contract object:')
+						var contract = {}
+						contract.title = c.engagement_title
+						contract.contractor = c.provider__id,
+						contract.github_url = doc.github.issue_url,
+						contract.odesk_url = 'http://www.odesk.com/e/' + company + '/contracts/' + c.reference,
+						contract.recno = c.reference,
+						contract.company = company
+
+						_.print('contract = ')
 						_.print(contract)
+						contracts.push(contract)
 
-					}
+					}   // end if (doc)
+				}) // end mongo findOne
+			} // end if (c)
+		}) // end each
 
-				if (contract) { contracts.push(contract) }
-				
-				})
-					// _.p(db.collection("posts").findOne( { "odesk.recno" : jobref } ), _.p())
-			}
-		})
-
+		_.print('contracts = ')
+		_.print(contracts)
 		return contracts
 	} 
 
