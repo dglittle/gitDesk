@@ -4,26 +4,58 @@
 
 {% block body %}
 
-<a href="#" id="getodeskjobs">getoDeskJobs</a>
+<a href="#" id="getodeskjobs">getoDeskJobs</a></br>
+<a href="#closeModal" data-toggle="modal" id="close1">Test Modal</a>
+
+
+
+<div class="modal hide fade" id="closeModal">
+
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h1>Close Issue</h1>
+  </div>
+
+  <div class="modal-body">
+    <p>When you close an issue, we will end your oDesk contract, submit any payment to the contractor, and update the GitHub issue to indicate that the job is closed.</p>
+	<p>You hired <strong>Michael Smith</strong> to resolve this issue for <strong>$10.00</strong>.</p>		
+
+<form action="./closeissue" method="POST">
+
+		<fieldset class="oFormField">
+		    <div class="oOptGrp oFormMed">
+		        <label class="oOpt oOptLbl">
+		            <input type="radio" name="radiogroup" id="closeandpay">Close issue and pay $10.00
+		        </label>
+		        <label class="oOpt oOptLbl">
+		            <input type="radio" name="radiogroup" id="closeandpaycustom">
+					Close and pay a different amount: $<input type="text" size="4" class="oSecurityCode" name="amount">
+				</label>
+		        <label class="oOpt oOptLbl">
+		            <input type="radio" name="radiogroup" id="closewithoutpaying">Close issue without making any payment
+		        </label>
+		    </div>
+		</fieldset>
+	   	<button class="oBtn oBtnPrimary" type="submit" value-"submit" >Submit</button>&nbsp;
+	 		<a class="oBtn oBtnCancel" data-dismiss="modal">Cancel</a></br></br>
+		<span class="oSupportInfo">Your credit card will be charged for any payment you submit at the end of the day.</span>
+    </form>
+  </div>
+
+</div>
 
 <div id="result">
 	...
 </div>
 
+{% endblock %}
+
 <script>
 
 $(function() {
 
-	$('#getodeskjobs').click(function() {
-		$.get('/api/getodeskjobs', function(doc){
-			var div = document.getElementById("result")
-		    div.textContent = JSON.stringify(doc, \t	, 4)
-			
-		}) // .get function
-	}); // .change function
-
-}) // overall function
+	$('#closeModal').on('show', function () {
+	  print('the modal fired!')
+	})
 
 </script>
-
-{% endblock body %}

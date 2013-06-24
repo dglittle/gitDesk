@@ -335,6 +335,38 @@ _.run(function () {
 		})
 	})
 
+	// Close an Issue, and Optionally Pay
+    app.post('/closeissue', requirelogin, function (req, res) {
+		_.run(function(){
+
+			_.print(req.body)
+			var o = getO(req)
+			var option = req.body.radiogroup
+			var team = req.body.team
+			var recno = req.body.contract
+			var amount = 0
+
+			if(option == 'closeandpaycustom') { amount = req.body.amount }
+			if(option == 'closeandpay') { amount = req.body.bounty }
+
+			if(amount > 0) {
+				var url = 'https://www.odesk.com/api/hr/v2/teams/' + team + '/adjustments.json?' +
+					'engagement__reference=' + recno + '&charge_amount=' + amount +
+					'&comments=Payment for resolving a GitHub issue via gitDesk'
+				try { _.p(o.post(url), _.p()).adjustment.reference } catch(e) { _.print('payment failed')}
+			} // payment submitted
+
+			// close the job			
+			var url = 'https://www.odesk.com/api/hr/v2/contracts/' + recno + '.json?' +
+				'http_method=delete&reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
+			try { _.p(o.post(url), _.p()) } catch(e) { _.print('end contract failed') }
+
+			// update the github issue ???
+
+			res.redirect('/issues')
+		})
+	})
+
 
 // ------- ------- ------- ------- API FUNCTIONS GO HERE ------- ------- ------- -------
 
@@ -397,7 +429,6 @@ _.run(function () {
 	function getGitDeskJobs() {
 		if (arguments[0]) {
 			var uid = arguments[0]
-			_.print('uid = ' + uid)
 			return _.p(db.collection("posts").find( { "odesk.uid" : uid } ).toArray(_.p()))
 		} else {
 			return _.p(db.collection("posts").find().toArray(_.p()))
@@ -546,43 +577,37 @@ _.run(function () {
 		var c = []
 
 		// get all jobs the user has access to and put them in an array
-		try { c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200', _.p())).engagements.engagement } catch (e) { 
+		try { c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200&field_set=extended', _.p())).engagements.engagement } catch (e) { 
 			_.print('oDesk API failed to get contracts')
-		} // sort by time created descending
+		} // would sorting by time descending speed up the next loop?
+
+		// get all the logged gitDesk jobs the user has access to and put them in an array
+		var gdj = getGitDeskJobs(req.session.odesk.id)
 
 		_.each(c,function(c) {       // only show contracts that link to a gitDesk job
 			if(c) {
-				
-				db.collection("posts").findOne( { "odesk.recno" : c.job__reference }, function(err, doc) {
-
-					if(doc) {
-						// _.print(doc)
-
-						try { var company = getCompanyByTeam(teams, c.buyer_team__reference) } catch(e) {
-							_.print('getCompanyByTeam did not work')
+				_.each(gdj,function(gdj) {
+					if (gdj.odesk.recno) {
+						if (gdj.odesk.recno == c.job__reference) {
+							var contract = {
+								title : c.engagement_title,
+								contractor : c.provider__name,
+								github_url : gdj.github.issue_url,
+								odesk_url : 'http://www.odesk.com/e/' + c.buyer_company__reference + '/contracts/' + c.reference,
+								recno : c.reference,
+								company : c.buyer_company__reference,
+								team : c.buyer_team__reference,
+								amount : c.fixed_pay_amount_agreed
+							}
+							contracts.push(contract)							
 						}
-
-						// _.print('company = ' + company)
-
-						var contract = {}
-						contract.title = c.engagement_title
-						contract.contractor = c.provider__id,
-						contract.github_url = doc.github.issue_url,
-						contract.odesk_url = 'http://www.odesk.com/e/' + company + '/contracts/' + c.reference,
-						contract.recno = c.reference,
-						contract.company = company
-
-						_.print('contract = ')
-						_.print(contract)
-						contracts.push(contract)
-
-					}   // end if (doc)
-				}) // end mongo findOne
+					} // end if gdj
+				}) // end each gdj
 			} // end if (c)
-		}) // end each
+		}) // end each c
 
-		_.print('contracts = ')
-		_.print(contracts)
+//		_.print('contracts = ')
+//		_.print(contracts)
 		return contracts
 	} 
 

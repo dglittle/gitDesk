@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}gitDesk - Close Issue{% endblock %}
+
+{% block body %}
+<strong><a href="/issues" style="font-size:14px;">&lt;&lt;&nbsp;Back to Issues</a></strong>
+<hr>
+<h1 class="oH1">Close Issue</h1>
+<p>Close a gitDesk issue and optionally pay the developer the bounty.</p></br>
+
+<form action="/closeissue" method="POST">
+
+	<div class="oFormField">
+	    <label class="oLabel" for="issue_url">Enter GitHub Issue URL</label>
+	    <input type="text" name="issue_url" id="issue_url" class="oInputText oFormLrg" placeholder="http://www.github.com/...">
+		<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or...</p>
+	</div>
+
+<!-- class="oFormTop" -->
+	<div class="oFormField">
+	  <label class="oLabel">Select GitHub Repository</label>
+	  <select id="repo" name="repo" class="oFormMed valid">
+		<option>Select Repo:</option>
+		{% for r in repos %}
+		  <option>{{r.name}}</option>
+		{% endfor %}
+	  </select>&nbsp;&nbsp;&nbsp;
+	  <select id="selectissue" name="selectissue" class="oFormMed valid" style="display: none;"></select>
+	</div>
+
+	<input type="hidden" name="issuenum" id="issuenum" value="">
+	<input type="hidden" name="repo_var" id="repo_var" value=""><hr>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="title">Issue Title</label>
+	    <input type="text" id="title" name="title" value="" class="oInputText oFormLrg"></input>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="description">Description</label>
+	    <textarea id="description" name="description" value="" style="font-size:14px;"></textarea>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="skills">Language / Technology</label>
+	    <input type="text" name="skills" id="skills" class="oInputText oFormLrg" value="">
+	    <span class="oHint">Examples: python, javascript  // note: use the oDesk skills auto-suggest widget?</span>
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="lrgCls">Bounty</label>
+	    <span>$ </span><input type="text" name="price" id="lrgCls" value="" class="oInputText oInputCurrency">
+	    <span class="oHint">This is the amount you are offering for the successful completion of the work described in this issue.</br>You will <strong>only</strong> pay when you accept a pull request. <a href="#">How does this work?</a></span>
+	</div>
+
+	<div class="oFormField">
+	  <label class="oLabel">oDesk Team</label>
+	  <select id="selectteam" name="teamname" class="oFormMed valid">
+		{% for t in teams %}
+		  <option teamref="{{t.reference}}">{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</option>
+		{% endfor %}
+	  </select>
+	  <span class="oHint">Which team would you like to post this job in?</span>
+	</div>
+    <input type="hidden" name="team" id="team" value="">
+    <input type="hidden" name="githubissueurl" id="githubissueurl" value="">
+
+	<footer class="oFormFooter">
+		<div class="oFieldValue">
+			<button class="oBtn oBtnPrimary oBtnLarge" type="submit" value-"submit" >Add Bounty</button>&nbsp;
+			<a class="oBtn oBtnCancel" href="addissue">Cancel</a>
+		</div>
+		<div class="oHint">This will post an oDesk job for this issue, and will append information describing the bounty to the issue on GitHub.</div>
+	</footer>
+</form>
+
+{% endblock body %}

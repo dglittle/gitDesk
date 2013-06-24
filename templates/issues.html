@@ -2,7 +2,8 @@
 
 {% block title %}gitDesk{% endblock %}
 
-{% block issues %}<div class="sourceExample">
+{% block body %}
+<div class="sourceExample">
 
 	<h1>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;">Jobs with linked issues</span></h1>
 
@@ -23,9 +24,61 @@
 		<h1 class="oH5 oHInline">{{ contract.title }}</h1><span class="oNull">
 			<a href="{{ contract.github_url }}" style="color: inherit">{{ contract.github_url }}</a></span></br>
 			{{ contract.contractor }}&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ contract.odesk_url }}">view job on oDesk</a>
-			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#">Close and Pay</a>
+			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#closeModal{{loop.index}}" data-toggle="modal" id="close1">Close and Pay</a>
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#">Cancel Job</a></br></br>
 		{% endfor %}
   	{% else %}<i>No active jobs</i>{% endif %}
 
-  </div>{% endblock %}
+</div>
+
+{% if contracts %}
+	{% for contract in contracts %}
+	<div class="modal hide fade" id="closeModal{{loop.index}}">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	    <h1>Close Issue</h1>
+	  </div>
+
+	  <div class="modal-body">
+		<p><strong>{{contract.title}}</strong>&nbsp;<span class="oSupportInfo">{{contract.github_url}}</span></p>
+	    <p>When you close an issue, we will end your oDesk contract, submit any payment to the contractor, and update the GitHub issue to indicate that the job is closed.</p><p>You hired <strong>{{contract.contractor}}</strong> to resolve this issue for <strong>${{contract.amount}}</strong>.</p>
+
+	<form action="./closeissue" method="POST">
+			<fieldset class="oFormField">
+			    <div class="oOptGrp oFormMed">
+			        <label class="oOpt oOptLbl">
+			            <input type="radio" name="radiogroup" value="closeandpay">Close issue and pay ${{contract.amount}}
+			        </label>
+			        <label class="oOpt oOptLbl">
+			            <input type="radio" name="radiogroup" value="closeandpaycustom">
+						Close and pay a different amount: $<input type="text" size="4" class="oSecurityCode" name="amount">
+					</label>
+			        <label class="oOpt oOptLbl">
+			            <input type="radio" name="radiogroup" value="closewithoutpaying">Close issue without making any payment
+			        </label>
+			    </div>
+			</fieldset>
+		   	<button class="oBtn oBtnPrimary" type="submit" value-"submit" >Submit</button>&nbsp;
+		 		<a class="oBtn oBtnCancel" data-dismiss="modal">Cancel</a></br></br>
+			<span class="oSupportInfo">Your credit card will be charged for any payment you submit at the end of the day.</span>
+		<input type="hidden" name="contract" id="contract" value="{{contract.recno}}">
+		<input type="hidden" name="bounty" id="bounty" value="{{contract.amount}}">
+		<input type="hidden" name="team" id="team" value="{{contract.team}}">
+	    </form>
+	  </div>
+
+	</div>
+	{% endfor %}
+{% else %}<i>No active jobs</i>{% endif %}
+
+{% endblock %}
+
+<script>
+
+$(function() {
+
+	$('#closeModal').on('show', function () {
+	  print('the modal fired!')
+	})
+
+</script>
