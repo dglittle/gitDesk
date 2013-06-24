@@ -342,24 +342,29 @@ _.run(function () {
 			_.print(req.body)
 			var o = getO(req)
 			var option = req.body.radiogroup
-			var team = req.body.team
-			var recno = req.body.contract
 			var amount = 0
-
 			if(option == 'closeandpaycustom') { amount = req.body.amount }
 			if(option == 'closeandpay') { amount = req.body.bounty }
+			var comment = 'Payment for resolving a GitHub issue via gitDesk'
 
 			if(amount > 0) {
-				var url = 'https://www.odesk.com/api/hr/v2/teams/' + team + '/adjustments.json?' +
-					'engagement__reference=' + recno + '&charge_amount=' + amount +
-					'&comments=Payment for resolving a GitHub issue via gitDesk'
-				try { _.p(o.post(url), _.p()).adjustment.reference } catch(e) { _.print('payment failed')}
-			} // payment submitted
+				_.print('going to try to pay $' + amount + ' now')
+
+				var paymentRef = _.p(o.post('hr/v2/teams/' + req.body.team + '/adjustments', {
+					engagement__reference : req.body.contract,
+					charge_amount : amount,
+					comments : comment
+				}, _.p())).adjustment.reference
+
+				_.print(paymentRef)
+			} // end if
 
 			// close the job			
-			var url = 'https://www.odesk.com/api/hr/v2/contracts/' + recno + '.json?' +
-				'http_method=delete&reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
-			try { _.p(o.post(url), _.p()) } catch(e) { _.print('end contract failed') }
+			var url = 'https://www.odesk.com/api/hr/v2/contracts/' + req.body.contract + '.json?' +
+				'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
+			_.print('close job url = ' + url)
+
+			_.p(o.delete(url, _.p()))
 
 			// update the github issue ???
 
