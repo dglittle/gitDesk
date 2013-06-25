@@ -16,9 +16,9 @@
 	<tr>
 		<td>{{r.name}}</td>
 		<td>{% if r.is_linked %}
-			Linked&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.url}}" ><small>unlink</small></a>
+			Linked&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.name}}" ><small>unlink</small></a>
 			{% else %}
-			Not Linked&nbsp;&nbsp;<a href="./api/linkrepo?repo={{r.url}}&githubuserid={{githubuserid}}" ><small>link repo</small></a>
+			Not Linked&nbsp;&nbsp;<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}" ><small>link repo</small></a>
 			{% endif %}</td>
 	</tr>
 	{% endfor %}

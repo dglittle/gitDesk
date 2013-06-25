@@ -222,11 +222,12 @@ _.run(function () {
 	// Manage Repos
     app.get('/repos', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = getRepos(req)
-			githubuserid = req.session.github.id
+			var repos = getRepos(req)
+			var githubuserid = req.session.github.id
 
 			res.render('repos.html', {
-
+				repos : repos,
+				githubuserid : githubuserid
 			})
 		})
 	})
@@ -462,10 +463,32 @@ _.run(function () {
 		})
 	})
 
+	app.all('/api/issue-hook', function (req, res) {
+		_.p(db.collection("hackhooks").insert({
+			query : req.query,
+			body : req.body
+		}, _.p()))
+		return "ok"
+	})
+
 	app.all('/api/linkrepo', function (req, res) {
 		_.run(function () {
 
 			// Greg, add code here to go add the hook, and return whether it worked
+
+			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.query.repo + '/hooks?access_token=' + req.session.github.accessToken
+
+			var s = _.wget(u, _.json({
+				"name": "web",
+				"active": true,
+				"events": [
+					"issues"
+				],
+				"config": {
+					"url": "https://warm-everglades-8745.herokuapp.com/api/issue-hook",
+					"content_type": "json"
+				}
+			}))
 
 			var repository = {
 				githubuserid : req.query.githubuserid,
