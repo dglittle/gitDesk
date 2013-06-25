@@ -464,6 +464,7 @@ _.run(function () {
 	})
 
 	app.all('/api/issue-hook', function (req, res) {
+		_.print('got here!!')
 		_.p(db.collection("hackhooks").insert({
 			query : req.query,
 			body : req.body
