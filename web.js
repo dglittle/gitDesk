@@ -465,11 +465,11 @@ _.run(function () {
 
 	app.all('/api/issue-hook', function (req, res) {
 		_.run(function () {
-			_.print('got here!!')
-			_.p(db.collection("hackhooks").insert({
-				query : req.query,
-				body : req.body
-			}, _.p()))
+
+			var issueBody = req.body.issue.body
+
+			// todo: parse for markup saying we want to add a oDesk job
+
 			res.send("ok")
 		})
 	})
@@ -485,7 +485,8 @@ _.run(function () {
 				"name": "web",
 				"active": true,
 				"events": [
-					"issues"
+					"issues",
+					"watch"
 				],
 				"config": {
 					"url": "https://warm-everglades-8745.herokuapp.com/api/issue-hook",
