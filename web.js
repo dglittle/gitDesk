@@ -464,12 +464,14 @@ _.run(function () {
 	})
 
 	app.all('/api/issue-hook', function (req, res) {
-		_.print('got here!!')
-		_.p(db.collection("hackhooks").insert({
-			query : req.query,
-			body : req.body
-		}, _.p()))
-		return "ok"
+		_.run(function () {
+			_.print('got here!!')
+			_.p(db.collection("hackhooks").insert({
+				query : req.query,
+				body : req.body
+			}, _.p()))
+			res.send("ok")
+		})
 	})
 
 	app.all('/api/linkrepo', function (req, res) {
@@ -495,9 +497,8 @@ _.run(function () {
 				githubuserid : req.query.githubuserid,
 				repo : req.query.repo
 			}
-			db.collection("linkedrepos").insert(repository, function(error) {
-				if(error) { _.print('this repo is already linked!') }
-			})
+			
+			_.p(db.collection("linkedrepos").insert(repository, _.p()))
 
 			res.redirect('/repos')
 		})
