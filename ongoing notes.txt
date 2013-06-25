@@ -1,45 +1,17 @@
 TO DO
 - Replace gitDesk logging with github.com regex
 - Minimum payment of $1.00
-- 
+- Create env variable to use heroku DB locally as well
+- If closed with payment, edit the issue ("done!") and (optionally) close the GitHub issue
+
+* create a screen with a "select repo" drop down; when you click "submit", call a placeholder function in which greg will put the code to add the hook
+
+* create a URL that accepts a POST request with params, and logs the param object in Mongo
 
 
 
 
 
-
-GREG'S PRIORITY LIST:
-#1 - Create Pair (with optional GitHub issue parameter) and Get Pairs (see required dataset in web.js under )
-
-* "Claim Job" screen
-
-
-I added an api for setting a team: /api/setteam?team={companyRef:123,teamRef:456,teamName:"blah"}
-
-(you can just pass the json blob for the team that you get from /api/getteams, and you can access the team from swig as "team")
-
------------------------
-       LEGEND
------------------------
-+   // back-end API needed
-*   // UI needed
-
-&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-Client Stuff
-
------------------------
-ADD ISSUE
------------------------
-+ Create Issue API (odesk and github)
-+ Fetch user's gitDesk jobs
-+ Add Bounty API (creates odesk job, links it an existing github issue, and edits the issue to show the bounty)
-
------------------------
-VIEW ISSUE
------------------------
-* Display pull request (and diff?) on the "view issue" screen
-+ Close Issue and Pay
-+ Reject pull-request
 
 -----------------------
 PULL REQUEST SUBMITTED

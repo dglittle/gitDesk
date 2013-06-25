@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}gitDesk - Add Repo{% endblock %}
+
+{% block body %}
+
+<h1>Your GitHub Repos</h1>
+<small>{{githubuserid}}</small>
+
+<table class="table table-striped table-hover">
+	<tr>
+		<th>Repo Name</th>
+		<th>Status</th>
+	</tr>
+	{% for r in repos %}
+	<tr>
+		<td>{{r.name}}</td>
+		<td>{% if r.is_linked %}
+			Linked&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.url}}" ><small>unlink</small></a>
+			{% else %}
+			Not Linked&nbsp;&nbsp;<a href="./api/linkrepo?repo={{r.url}}&githubuserid={{githubuserid}}" ><small>link repo</small></a>
+			{% endif %}</td>
+	</tr>
+	{% endfor %}
+</table>
+
+<div class="oHint">This link the selected GitHub repo with oDesk, so that you can create and manage jobs on oDesk using markdown inside the GitHub issue.</div>
+
+</form>
+
+
+{% endblock body%}

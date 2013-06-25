@@ -3,7 +3,6 @@
 {% block title %}gitDesk{% endblock %}
 
 {% block body %}
-<div class="sourceExample">
 
 	<h1>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;">Jobs with linked issues</span></h1>
 
@@ -28,8 +27,6 @@
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#">Cancel Job</a></br></br>
 		{% endfor %}
   	{% else %}<i>No active jobs</i>{% endif %}
-
-</div>
 
 {% if contracts %}
 	{% for contract in contracts %}

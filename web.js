@@ -187,10 +187,30 @@ _.run(function () {
 	    }
 	}
 
+	function getRepos (req) {
+		var githubuserid = req.user.githubuserid
+
+		var repos = _.unJson(_.wget('https://api.github.com/users/'+githubuserid+
+				'/repos?access_token=' + req.session.github.accessToken))
+				
+		var linked_repos =  _.p(db.collection("linkedrepos").find( { "githubuserid" : githubuserid } ).toArray(_.p()))
+		
+		
+		_.each(repos, function(ghr) {
+			_.each(linked_repos, function(lr) {
+				if (ghr.url == lr.repo) {
+					ghr.is_linked = true
+				}
+			})
+		})
+	
+		return repos
+	}
+
 	// Add Issue
     app.get('/addissue', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos?access_token=' + req.session.github.accessToken))
+			repos = getRepos(req) 
 			teams = getTeams(req)
 
 			res.render('addissue.html', {
@@ -199,10 +219,22 @@ _.run(function () {
 		})
 	})
 
+	// Manage Repos
+    app.get('/repos', requirelogin, function (req, res) {
+		_.run(function(){
+			repos = getRepos(req)
+			githubuserid = req.session.github.id
+
+			res.render('repos.html', {
+
+			})
+		})
+	})
+
 	// Add Bounty to Existing Issue (GET form)
     app.get('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = _.unJson(_.wget('https://api.github.com/users/'+req.user.githubuserid+'/repos?access_token=' + req.session.github.accessToken))
+			repos = getRepos(req)
 			t = getTeams(req)
 			teams = t.sort(sort_by('company_name', false, function(a){return a.toUpperCase()}))
 			res.render('addbounty.html', {
@@ -364,8 +396,6 @@ _.run(function () {
 				'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
 			_.print('close job url = ' + url)
 
-//			_.p(o.delete(url, _.p()))
-			
 			var reason = 'API_REAS_JOB_COMPLETED_SUCCESSFULLY'
 			var hireagain = 'yes'
 		
@@ -373,7 +403,7 @@ _.run(function () {
 				reason : reason,
 				would_hire_again : hireagain
 			}, _.p()))
-
+			
 			// update the github issue ???
 
 			res.redirect('/issues')
@@ -429,6 +459,34 @@ _.run(function () {
 		_.run(function() {
 			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues' + '?access_token=' + req.session.github.accessToken)
 			res.json(issues)
+		})
+	})
+
+	app.all('/api/linkrepo', function (req, res) {
+		_.run(function () {
+
+			// Greg, add code here to go add the hook, and return whether it worked
+
+			var repository = {
+				githubuserid : req.query.githubuserid,
+				repo : req.query.repo
+			}
+			db.collection("linkedrepos").insert(repository, function(error) {
+				if(error) { _.print('this repo is already linked!') }
+			})
+
+			res.redirect('/repos')
+		})
+	})
+
+	app.all('/api/unlinkrepo', function (req, res) {
+		_.run(function () {
+
+			// Greg, add code here to go add the hook to UNLINK the repo, and return whether it worked
+
+			db.collection("linkedrepos").remove({"repo" : req.query.repo}, function(err, removed) {})
+
+			res.redirect('/repos')
 		})
 	})
 
@@ -533,7 +591,6 @@ _.run(function () {
 
 		})
 	})
-
 
     function getoDeskJobs(req) {
 	
