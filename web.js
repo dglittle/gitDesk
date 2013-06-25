@@ -198,7 +198,7 @@ _.run(function () {
 		
 		_.each(repos, function(ghr) {
 			_.each(linked_repos, function(lr) {
-				if (ghr.url == lr.repo) {
+				if (ghr.name == lr.repo) {
 					ghr.is_linked = true
 				}
 			})
