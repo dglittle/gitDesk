@@ -364,7 +364,15 @@ _.run(function () {
 				'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
 			_.print('close job url = ' + url)
 
-			_.p(o.delete(url, _.p()))
+//			_.p(o.delete(url, _.p()))
+			
+			var reason = 'API_REAS_JOB_COMPLETED_SUCCESSFULLY'
+			var hireagain = 'yes'
+		
+			_.p(o.delete('hr/v2/contracts/' + req.body.contract, {
+				reason : reason,
+				would_hire_again : hireagain
+			}, _.p()))
 
 			// update the github issue ???
 
@@ -582,12 +590,13 @@ _.run(function () {
 		var c = []
 
 		// get all jobs the user has access to and put them in an array
-		try { c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200&field_set=extended', _.p())).engagements.engagement } catch (e) { 
+		try { c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200&field_set=extended&sort=created_time;D', _.p())).engagements.engagement } catch (e) { 
 			_.print('oDesk API failed to get contracts')
 		} // would sorting by time descending speed up the next loop?
 
 		// get all the logged gitDesk jobs the user has access to and put them in an array
 		var gdj = getGitDeskJobs(req.session.odesk.id)
+		// instead of doing this, do the regex thing
 
 		_.each(c,function(c) {       // only show contracts that link to a gitDesk job
 			if(c) {

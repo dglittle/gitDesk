@@ -1,3 +1,13 @@
+TO DO
+- Replace gitDesk logging with github.com regex
+- Minimum payment of $1.00
+- 
+
+
+
+
+
+
 GREG'S PRIORITY LIST:
 #1 - Create Pair (with optional GitHub issue parameter) and Get Pairs (see required dataset in web.js under )
 
