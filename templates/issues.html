@@ -37,7 +37,7 @@
 	{% if repos|length > 0 %}
 	You have {{repos|length}} linked repo{% if repos|length > 1 %}s{% endif %}:
 	<ul class="oStretchList">
-		{% for repo in repos %}<li>/{{repo.repo}}</li>{% endfor %}
+		{% for repo in repos %}<li><a href="{{repo.html_url}}">/{{repo.repo}}</li>{% endfor %}
 	</ul></br>
 	<a class="oBtn oBtnPrimary" href="../repos">Manage Linked Repos</a>
 	{% else %}

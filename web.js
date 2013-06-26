@@ -455,6 +455,7 @@ _.run(function () {
 					ghr.team = lr.team }
 			})
 		})
+		_.print(repos)
 		return repos
 	}
 
@@ -592,7 +593,8 @@ _.run(function () {
 				githubuserid : req.query.githubuserid,
 				odeskuserid : req.session.odesk.id,
 				repo : req.query.repo,
-				team : req.query.team
+				team : req.query.team,
+				html_url : 'https://github.com/' + req.query.githubuserid + '/' + req.query.repo
 			}
 			
 			_.p(db.collection("linkedrepos").insert(repository, _.p()))
@@ -811,7 +813,7 @@ _.run(function () {
 								recno : c.reference,
 								company : c.buyer_company__reference,
 								team : c.buyer_team__reference,
-								amount : c.fixed_pay_amount_agreed
+								amount : accounting.js(formatMoney(c.fixed_pay_amount_agreed))
 							}
 							contracts.push(contract)							
 						}

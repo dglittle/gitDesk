@@ -18,7 +18,7 @@
 	</tr>
 	{% for r in repos %}
 	<tr>
-		<td>{{r.name}}</td>
+		<td><a href="{{r.html_url}}">{{r.name}}</a></td>
 		<td>{% if r.is_linked %}
 			Linked to {{r.team_name}}&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.name}}" ><small>unlink</small></a>
 			{% else %}
