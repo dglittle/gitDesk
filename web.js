@@ -563,13 +563,9 @@ function endJob(jobref, odeskuserid) {
 
 			// look for markdown
 			var issueBody = req.body.issue.body
-			_.print('issueBody = ')
-			_.print(issueBody)
 			var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
-			_.print('bounty = ')
-			_.print(bounty)
-
-			if (markdown) {
+			_.print('bounty = ' + bounty)
+			if (bounty) {
 				var issue = req.body.issue
 				var title = req.body.issue.title
 				var githubuserid = req.body.issue.user.login
