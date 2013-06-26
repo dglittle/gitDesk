@@ -207,11 +207,22 @@ _.run(function () {
     app.get('/repos', requirelogin, function (req, res) {
 		_.run(function(){
 			var repos = getRepos(req)
+			var teams = getTeams(req)
+			_.print('got here')
+			_.each(repos, function(ghr) {
+				if (ghr.is_linked) {
+					_.each(teams, function(team) {
+						if (ghr.team == team.reference) { ghr.team_name = team.company_name + ' > ' + team.name }
+					})
+				}
+			})
+
 			var githubuserid = req.session.github.id
 
 			res.render('repos.html', {
 				repos : repos,
-				githubuserid : githubuserid
+				githubuserid : githubuserid,
+				teams : teams
 			})
 		})
 	})
@@ -408,7 +419,9 @@ _.run(function () {
 		var linked_repos =  _.p(db.collection("linkedrepos").find( { "githubuserid" : githubuserid } ).toArray(_.p()))
 		_.each(repos, function(ghr) {
 			_.each(linked_repos, function(lr) {
-				if (ghr.name == lr.repo) { ghr.is_linked = true }
+				if (ghr.name == lr.repo) { 
+					ghr.is_linked = true,
+					ghr.team = lr.team }
 			})
 		})
 		return repos
@@ -514,7 +527,8 @@ _.run(function () {
 
 			var repository = {
 				githubuserid : req.query.githubuserid,
-				repo : req.query.repo
+				repo : req.query.repo,
+				team : req.query.team
 			}
 			
 			_.p(db.collection("linkedrepos").insert(repository, _.p()))

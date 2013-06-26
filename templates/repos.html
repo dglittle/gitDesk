@@ -16,10 +16,26 @@
 	<tr>
 		<td>{{r.name}}</td>
 		<td>{% if r.is_linked %}
-			Linked&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.name}}" ><small>unlink</small></a>
+			Linked to {{r.team_name}}&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.name}}" ><small>unlink</small></a>
 			{% else %}
-			Not Linked&nbsp;&nbsp;<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}" ><small>link repo</small></a>
-			{% endif %}</td>
+			Not Linked&nbsp;&nbsp;
+			{% if teams|length > 1 %}
+				<div class="dropdown" style="display: inline;">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#"><small>link repo</small></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" style="width: 300px;">
+						{% for t in teams %}
+							<li><small><a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.reference}}" >
+								{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</a></small></li>
+						{% endfor %}
+					</ul>
+				</div>
+			{% else %}
+				{% for t in teams %}
+				<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.reference}}" ><small>link repo</small></a>
+				{% endfor %}
+			{% endif %}
+			{% endif %}
+		</td>
 	</tr>
 	{% endfor %}
 </table>
@@ -30,3 +46,6 @@
 
 
 {% endblock body%}
+
+
+<input type="hidden" name="team" id="team" value="">
