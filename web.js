@@ -476,13 +476,18 @@ _.run(function () {
 
 	app.all('/api/issue-hook', function (req, res) {
 		_.run(function () {
+			// make sure the issue is added by us, so other people can't add jobs for us by creating issues, since anyone can create an issue
+			if (req.body.issue.user.login != req.session.github.id) {
+				throw new Error('issue not created by us')
+			}
 
 			var issueBody = req.body.issue.body
 
 			// todo: parse for markup saying we want to add a oDesk job
 			_.p(db.collection('hackhooks').insert({
 				body : req.body,
-				query : req.query
+				query : req.query,
+				headers : req.headers
 			}, _.p()))
 
 			res.send("ok")
