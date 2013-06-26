@@ -4,13 +4,6 @@ TO DO
 - Create env variable to use heroku DB locally as well
 - If closed with payment, edit the issue ("done!") and (optionally) close the GitHub issue
 
-* create a screen with a "select repo" drop down; when you click "submit", call a placeholder function in which greg will put the code to add the hook
-
-* create a URL that accepts a POST request with params, and logs the param object in Mongo
-
-
-
-
 
 
 -----------------------
