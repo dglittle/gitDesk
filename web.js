@@ -502,7 +502,8 @@ _.run(function () {
 				],
 				"config": {
 					"url": process.env.HOST + "/api/issue-hook",
-					"content_type": "json"
+					"content_type": "json",
+					"secret": process.env.GITHUB_CLIENT_SECRET
 				}
 			}))
 
