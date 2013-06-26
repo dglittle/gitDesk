@@ -56,17 +56,17 @@
 
 	  <div class="modal-body">
 		<p><strong>{{contract.title}}</strong>&nbsp;<span class="oSupportInfo">{{contract.github_url}}</span></p>
-	    <p>When you close an issue, we will end your oDesk contract, submit any payment to the contractor, and update the GitHub issue to indicate that the job is closed.</p><p>You hired <strong>{{contract.contractor}}</strong> to resolve this issue for <strong>${{contract.amount}}</strong>.</p>
+	    <p>When you close an issue, we will end your oDesk contract, submit any payment to the contractor, and update the GitHub issue to indicate that the job is closed.</p><p>You hired <strong>{{contract.contractor}}</strong> to resolve this issue for <strong>{{contract.amount_formatted}}</strong>.</p>
 
 	<form action="./closeissue" method="POST">
 			<fieldset class="oFormField">
 			    <div class="oOptGrp oFormMed">
 			        <label class="oOpt oOptLbl">
-			            <input type="radio" name="radiogroup" value="closeandpay">Close issue and pay ${{contract.amount}}
+			            <input type="radio" name="radiogroup" value="closeandpay">Close issue and pay {{contract.amount_formatted}}
 			        </label>
 			        <label class="oOpt oOptLbl">
 			            <input type="radio" name="radiogroup" value="closeandpaycustom">
-						Close and pay a different amount: $<input type="text" size="4" class="oSecurityCode" name="amount">
+						Close and pay a different amount: <input type="text" size="4" class="oSecurityCode" name="amount">
 					</label>
 			        <label class="oOpt oOptLbl">
 			            <input type="radio" name="radiogroup" value="closewithoutpaying">Close issue without making any payment

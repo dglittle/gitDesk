@@ -231,7 +231,6 @@ _.run(function () {
 		_.run(function(){
 			var repos = getRepos(req)
 			var teams = getTeams(req)
-			_.print('got here')
 			_.each(repos, function(ghr) {
 				if (ghr.is_linked) {
 					_.each(teams, function(team) {
@@ -289,7 +288,6 @@ _.run(function () {
 	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid) {
 		var token = _.p(db.collection("tokens").findOne( { "_id" : "odesk:" + odeskuserid }, _.p()))
 		var o = getOFromToken(token)
-//		var o = getO(req)
 		
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
@@ -383,7 +381,6 @@ _.run(function () {
     app.post('/closeissue', requirelogin, function (req, res) {
 		_.run(function(){
 
-			_.print(req.body)
 			var o = getO(req)
 			var option = req.body.radiogroup
 			var amount = 0
@@ -391,6 +388,7 @@ _.run(function () {
 			if(option == 'closeandpay') { amount = req.body.bounty }
 			var comment = 'Payment for resolving a GitHub issue via gitDesk'
 
+			// try to pay
 			if(amount > 0) {
 				_.print('going to try to pay $' + amount + ' now')
 
@@ -403,24 +401,44 @@ _.run(function () {
 				_.print(paymentRef)
 			} // end if
 
-			// close the job			
+			// close the job
+
+			// endContract(o, req.body.contract)   THIS DOES NOT WORK!!!
+
 			var url = 'https://www.odesk.com/api/hr/v2/contracts/' + req.body.contract + '.json?' +
 				'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
 			_.print('close job url = ' + url)
-
 			var reason = 'API_REAS_JOB_COMPLETED_SUCCESSFULLY'
 			var hireagain = 'yes'
-		
+			_.print(o)
+			_.print(req.body.contract)
+
 			_.p(o.delete('hr/v2/contracts/' + req.body.contract, {
 				reason : reason,
 				would_hire_again : hireagain
 			}, _.p()))
-			
+
 			// update the github issue ???
 
 			res.redirect('/issues')
 		})
 	})
+
+function endContract(o, contract) {
+	var url = 'https://www.odesk.com/api/hr/v2/contracts/' + contract + '.json?' +
+		'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
+	_.print('close job url = ' + url)
+	var reason = 'API_REAS_JOB_COMPLETED_SUCCESSFULLY'
+	var hireagain = 'yes'
+	_.print(o)
+	_.print(contract)
+
+	_.p(o.delete('hr/v2/contracts/' + contract, {
+		reason : reason,
+		would_hire_again : hireagain
+	}, _.p()))
+	
+}
 
 // ------- ------- ------- ------- HELPER FUNCTIONS ------- ------- ------- -------
 
@@ -455,7 +473,6 @@ _.run(function () {
 					ghr.team = lr.team }
 			})
 		})
-		_.print(repos)
 		return repos
 	}
 
@@ -466,7 +483,6 @@ _.run(function () {
 			// look for markdown
 			var issueBody = 'Here is the issue name.\noDesk bounty: $10.44\nAnd some more'
 			bounty = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)[2]
-			_.print(bounty)
 
 			res.render('apitest.html', {
 			})
@@ -506,6 +522,15 @@ _.run(function () {
 		_.run(function () {
 			req.session.team = _.unJson(req.query.team || req.body.team)
 			res.json(true)
+		})
+	})
+
+	app.all('/api/canceljob', function (req, res) {    // add close job
+		_.run(function () {
+			var token = _.p(db.collection("tokens").findOne( { "_id" : "odesk:" + req.session.odesk.id }, _.p()))
+			var o = getOFromToken(token)
+			var contract = req.query.contract
+			closecontract(o, contract)
 		})
 	})
 	
@@ -800,27 +825,23 @@ _.run(function () {
 		var gdj = getGitDeskJobs(req.session.odesk.id)
 		// instead of doing this, do the regex thing
 
-		_.each(c,function(c) {       // only show contracts that link to a gitDesk job
-			if(c) {
-				_.each(gdj,function(gdj) {
-					if (gdj.odesk.recno) {
-						if (gdj.odesk.recno == c.job__reference) {
-							var contract = {
-								title : c.engagement_title,
-								contractor : c.provider__name,
-								github_url : gdj.github.issue_url,
-								odesk_url : 'http://www.odesk.com/e/' + c.buyer_company__reference + '/contracts/' + c.reference,
-								recno : c.reference,
-								company : c.buyer_company__reference,
-								team : c.buyer_team__reference,
-								amount : accounting.js(formatMoney(c.fixed_pay_amount_agreed))
-							}
-							contracts.push(contract)							
-						}
-					} // end if gdj
-				}) // end each gdj
-			} // end if (c)
-		}) // end each c
+		_.each(c, function(c) {
+			var m = c.job__description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
+			if (m) {
+				var contract = {
+					title : c.engagement_title,
+					contractor : c.provider__name,
+					github_url : m[0],
+					odesk_url : 'http://www.odesk.com/e/' + c.buyer_company__reference + '/contracts/' + c.reference,
+					recno : c.reference,
+					company : c.buyer_company__reference,
+					team : c.buyer_team__reference,
+					amount : c.fixed_pay_amount_agreed,
+					amount_formatted : accounting.formatMoney(c.fixed_pay_amount_agreed)
+				}
+				contracts.push(contract)
+			}
+		})
 
 //		_.print('contracts = ')
 //		_.print(contracts)
