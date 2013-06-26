@@ -477,8 +477,8 @@ _.run(function () {
 	app.all('/api/issue-hook', function (req, res) {
 		_.run(function () {
 			// make sure the issue is added by us, so other people can't add jobs for us by creating issues, since anyone can create an issue
-			if (req.body.issue.user.login != req.session.github.id) {
-				throw new Error('issue not created by us')
+			if (req.body.issue.user.login != req.body.repository.owner.login) {
+				throw new Error('issue not created by repository owner')
 			}
 
 			var issueBody = req.body.issue.body
