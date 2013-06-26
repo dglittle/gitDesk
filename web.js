@@ -286,9 +286,8 @@ _.run(function () {
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
 	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid) {
-		var token = _.p(db.collection("tokens").findOne( { "_id" : "odesk:" + odeskuserid }, _.p()))
-		var o = getOFromToken(token)
-		
+		var o = getOByUserID(odeskuserid)
+
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
 	        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
@@ -403,7 +402,7 @@ _.run(function () {
 
 			// close the job
 
-			// endContract(o, req.body.contract)   THIS DOES NOT WORK!!!
+			// endContract(req.body.contract, req.session.odesk.id)
 
 			var url = 'https://www.odesk.com/api/hr/v2/contracts/' + req.body.contract + '.json?' +
 				'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
@@ -424,21 +423,22 @@ _.run(function () {
 		})
 	})
 
-function endContract(o, contract) {
-	var url = 'https://www.odesk.com/api/hr/v2/contracts/' + contract + '.json?' +
-		'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
-	_.print('close job url = ' + url)
-	var reason = 'API_REAS_JOB_COMPLETED_SUCCESSFULLY'
-	var hireagain = 'yes'
-	_.print(o)
-	_.print(contract)
-
+function endContract(contract, odeskuserid) {
+	var o = getOByUserID(odeskuserid)
 	_.p(o.delete('hr/v2/contracts/' + contract, {
-		reason : reason,
-		would_hire_again : hireagain
+		reason : 'API_REAS_JOB_COMPLETED_SUCCESSFULLY',
+		would_hire_again : 'yes'
 	}, _.p()))
-	
 }
+
+function endJob(jobref, odeskuserid) {
+	var o = getOByUserID(odeskuserid)
+
+	_.p(o.delete('hr/v2/jobs/' + jobref, {
+		reason_code : '41'
+	}, _.p()))
+}
+
 
 // ------- ------- ------- ------- HELPER FUNCTIONS ------- ------- ------- -------
 
@@ -525,12 +525,10 @@ function endContract(o, contract) {
 		})
 	})
 
-	app.all('/api/canceljob', function (req, res) {    // add close job
+	app.get('/api/canceljob', function (req, res) {    // add close job
 		_.run(function () {
-			var token = _.p(db.collection("tokens").findOne( { "_id" : "odesk:" + req.session.odesk.id }, _.p()))
-			var o = getOFromToken(token)
-			var contract = req.query.contract
-			closecontract(o, contract)
+			endJob(req.query.jobref, req.query.odeskuserid)
+			res.redirect('/issues')
 		})
 	})
 	
@@ -676,20 +674,20 @@ function endContract(o, contract) {
 	   }
 	}
 
-	function getO(req) {
-		var odesk = require('node-odesk-utils')
-		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
-		o.OAuth.accessToken = req.session.odesk.accessToken
-		o.OAuth.accessTokenSecret = req.session.odesk.tokenSecret
-		return o
-	}
-
 	function getOFromToken(token) {
 		var odesk = require('node-odesk-utils')
 		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
 		o.OAuth.accessToken = token.accessToken
 		o.OAuth.accessTokenSecret = token.tokenSecret
 		return o
+	}
+
+	function getO(req) {
+		return getOFromToken(req.session.odesk)
+	}
+
+	function getOByUserID(odeskuserid) {
+		return getOFromToken(_.p(db.collection("tokens").findOne( { "_id" : "odesk:" + odeskuserid }, _.p())))
 	}
 
 	function getTeams(req) {
