@@ -313,6 +313,8 @@ _.run(function () {
 
 		var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
 
+		_.print(issue.url)
+
 		var s = _.wget('PATCH', issue.url, _.json({
             body : 	"********************************************" + '\n' +
 					"I'm offering $" + (1*budget).toFixed(2) + " on oDesk for someone to do this task: "
@@ -320,8 +322,6 @@ _.run(function () {
 					+ "********************************************" + '\n\n'
 					+ issue.body
 		}))
-
-		_.print(s)
 
 		var post = {
 			odesk: {
@@ -356,10 +356,11 @@ _.run(function () {
 			var post = addbounty(req, issue, team, title, budget, visibility)
 
 			res.render('confirmbounty.html', {
-				title: req.body.title,
+				title: title,
 				description: req.body.description,
-				team: req.body.team,
-				joburl: post.odesk.job_url
+				team: team,
+				joburl: post.odesk.job_url,
+				budget: budget
 			})
 		})
 	})
