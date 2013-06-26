@@ -104,11 +104,12 @@ _.run(function () {
 	        customHeaders: { "User-Agent": "gitDesk/1.0" }
 	    },
 	    function(accessToken, refreshToken, profile, done) {
-            return done(null, {
-            	id : profile.username,
-            	accessToken : accessToken,
-            	refreshToken : refreshToken
-            });
+	    	db.collection("tokens").update({
+	    		_id : "github:" + profile.username
+	    	}, { $set : { accessToken : accessToken, refreshToken : refreshToken }
+	    	}, { upsert : true}, function () {
+            	done(null, { id : profile.username, accessToken : accessToken, refreshToken : refreshToken })
+            })
 	    }
 	))
 
@@ -117,12 +118,14 @@ _.run(function () {
 	        consumerSecret: process.env.ODESK_API_SECRET,
 	        callbackURL: process.env.HOST + "/auth/odesk/callback"
 	    },
+	
 	    function(token, tokenSecret, profile, done) {
-            return done(null, {
-            	id : profile.id,
-            	accessToken : token,
-            	tokenSecret : tokenSecret
-            });
+	    	db.collection("tokens").update({
+	    		_id : "odesk:" + profile.id
+	    	}, { $set : { accessToken : token, tokenSecret : tokenSecret }
+	    	}, { upsert : true}, function () {
+            	done(null, { id : profile.id, accessToken : token, tokenSecret : tokenSecret })
+            })
 	    }
 	))
 
@@ -276,10 +279,11 @@ _.run(function () {
 
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
-	function addbounty(req, issue, team, title, budget, visibility) {
-
-		var o = getO(req)
-
+	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid) {
+		var token = _.p(db.collection("tokens").findOne( { "_id" : "odesk:" + odeskuserid }, _.p()))
+		var o = getOFromToken(token)
+//		var o = getO(req)
+		
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
 	        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
@@ -313,9 +317,11 @@ _.run(function () {
 
 		var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
 
-		_.print(issue.url)
+		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
+		
+		u = issue.url + '?access_token=' + g.accessToken
 
-		var s = _.wget('PATCH', issue.url, _.json({
+		var s = _.wget('PATCH', u, _.json({
             body : 	"********************************************" + '\n' +
 					"I'm offering $" + (1*budget).toFixed(2) + " on oDesk for someone to do this task: "
 					+ job.public_url + '\n'
@@ -325,12 +331,12 @@ _.run(function () {
 
 		var post = {
 			odesk: {
-				uid: req.session.odesk.id,
+				uid: odeskuserid,
 				job_url: job.public_url,
 				recno: jobRef
 			},
 			github: {
-				uid: req.session.github.id,
+				uid: githubuserid,
 				issue_url: issue.html_url
 			}
 		}
@@ -352,8 +358,7 @@ _.run(function () {
 			var visibility
 			if (req.body.visibility) { visibility = 'public' }
 			else { visibility = 'private' }
-
-			var post = addbounty(req, issue, team, title, budget, visibility)
+			var post = addbounty(issue, team, title, budget, visibility, req.session.odesk.id, req.session.github.id)
 
 			res.render('confirmbounty.html', {
 				title: title,
@@ -505,18 +510,33 @@ _.run(function () {
 
 	app.all('/api/issue-hook', function (req, res) {
 		_.run(function () {
+
 			// make sure the request is from github
 			hmac = require('crypto').createHmac('sha1', process.env.GITHUB_CLIENT_SECRET).update(req.rawBody).digest("hex")
 			if (hmac != req.headers['x-hub-signature'].split(/=/)[1]) {
 				throw new Error("request doesn't seem to be from github")
 			}
 
-			// make sure the issue is added by us, so other people can't add jobs for us by creating issues, since anyone can create an issue
+			// make sure the issue is added by the repo owner (since anyone can create an issue)
 			if (req.body.issue.user.login != req.body.repository.owner.login) {
 				throw new Error('issue not created by repository owner')
 			}
 
 			var issueBody = req.body.issue.body
+			
+			// add req stuff ?
+			var issue = req.body.issue
+			var team = getTeamByRepo()
+			var title = req.body.issue.title
+			var githubuserid = req.body.issue.user.login
+			var repo = req.body.repository.name
+			var linkedrepo = _.p(db.collection("linkedrepos").findOne( { "githubuserid" : githubuserid, "repo" : repo }, _.p()))
+			var odeskuserid = linkedrepo.odeskuserid
+			var budget = 2.22 // parse the description for the budget
+			var visibility = 'public'
+			// req, issue, team, title, budget, visibility
+
+			addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid)
 
 			// todo: parse for markup saying we want to add a oDesk job,
 			// and remove this hackhooks thing ;)
@@ -551,6 +571,7 @@ _.run(function () {
 
 			var repository = {
 				githubuserid : req.query.githubuserid,
+				odeskuserid : req.session.odesk.id,
 				repo : req.query.repo,
 				team : req.query.team
 			}
@@ -614,6 +635,14 @@ _.run(function () {
 		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
 		o.OAuth.accessToken = req.session.odesk.accessToken
 		o.OAuth.accessTokenSecret = req.session.odesk.tokenSecret
+		return o
+	}
+
+	function getOFromToken(token) {
+		var odesk = require('node-odesk-utils')
+		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
+		o.OAuth.accessToken = token.accessToken
+		o.OAuth.accessTokenSecret = token.tokenSecret
 		return o
 	}
 
