@@ -490,14 +490,6 @@ _.run(function () {
 		_.run(function () {
 			// make sure the request is from github
 			hmac = require('crypto').createHmac('sha1', process.env.GITHUB_CLIENT_SECRET).update(req.rawBody).digest("hex")
-
-			_.print('rawBody')
-			_.print(req.rawBody)
-			_.print('hmac')
-			_.print(hmac)
-			_.print('should be')
-			_.print(req.headers['x-hub-signature'].split(/=/)[1])
-
 			if (hmac != req.headers['x-hub-signature'].split(/=/)[1]) {
 				throw new Error("request doesn't seem to be from github")
 			}
@@ -509,7 +501,8 @@ _.run(function () {
 
 			var issueBody = req.body.issue.body
 
-			// todo: parse for markup saying we want to add a oDesk job
+			// todo: parse for markup saying we want to add a oDesk job,
+			// and remove this hackhooks thing ;)
 			_.p(db.collection('hackhooks').insert({
 				body : req.body,
 				query : req.query,
