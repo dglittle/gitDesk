@@ -29,7 +29,7 @@
 	</div>
 
 	<input type="hidden" name="issuenum" id="issuenum" value="">
-	<input type="hidden" name="repo_var" id="repo_var" value=""><hr>
+	<input type="hidden" name="api_url" id="api_url" value=""><hr>
 
 	<div class="oFormField">
 	    <label class="oLabel" for="title">Issue Title</label>
@@ -62,6 +62,14 @@
 	  </select>
 	  <span class="oHint">Which team would you like to post this job in?</span>
 	</div>
+
+	<div class="oFormField">
+		<label class="oLabel">Visible in Marketplace</label>
+	    <label class="oOpt oOptSub oOptLbl">
+	        <input type="checkbox" name="visibility" checked>(if unchecked, job will be invite-only)
+	    </label>
+	</div>
+
     <input type="hidden" name="team" id="team" value="">
     <input type="hidden" name="githubissueurl" id="githubissueurl" value="">
 
@@ -102,7 +110,8 @@ $(function() {
 		$('#githubissueurl').val(issue.html_url)
 		$('#description').val(issue.body)
 		$('#issuenum').val(issue.number)	
-		$("#repo_var").val(issue.repo)
+		$("#api_url").val(issue.url)
+		console.log(issue)
 	};
 
 	$('#issue_url').change(function() {
