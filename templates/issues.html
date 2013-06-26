@@ -10,7 +10,7 @@
 		{% for job in jobs %}
 		<h1 class="oH5 oHInline">{{ job.title }}</h1><span class="oNull">
 			<a href="{{ job.github_url }}" style="color: inherit">{{ job.github_url }}</a></span></br>
-		<a href="{{ job.ats_url }}">{{ job.candidates }} applicants</a>
+			<a href="{{ job.ats_url }}">{{ job.candidates }} applicants</a>
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ job.odesk_url }}">view job on oDesk</a></br></br>
 		{% endfor %}
 	{% else %}<i>No open bounties</i>{% endif %}

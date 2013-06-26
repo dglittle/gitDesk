@@ -452,6 +452,14 @@ _.run(function () {
 	// Page to Test APIs
     app.get('/apitest', requirelogin, function (req, res) {
 		_.run(function(){
+			
+			// look for markdown
+			var issueBody = 'Here is the issue name.\noDesk bounty: $10.44\nAnd some more'
+			bounty = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)[2]
+			_.print(bounty)
+			
+			
+			
 			res.render('apitest.html', {
 			})
 		})
@@ -522,29 +530,30 @@ _.run(function () {
 				throw new Error('issue not created by repository owner')
 			}
 
+			// look for markdown
 			var issueBody = req.body.issue.body
-			
-			// add req stuff ?
-			var issue = req.body.issue
-			var title = req.body.issue.title
-			var githubuserid = req.body.issue.user.login
-			var repo = req.body.repository.name
-			var linkedrepo = _.p(db.collection("linkedrepos").findOne( { "githubuserid" : githubuserid, "repo" : repo }, _.p()))
-			var team = linkedrepo.team
-			var odeskuserid = linkedrepo.odeskuserid
-			var budget = 2.22 // parse the description for the budget
-			var visibility = 'public'
-			// req, issue, team, title, budget, visibility
+			markdown = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)
+			if (markdown) {
+				var issue = req.body.issue
+				var title = req.body.issue.title
+				var githubuserid = req.body.issue.user.login
+				var repo = req.body.repository.name
+				var linkedrepo = _.p(db.collection("linkedrepos").findOne( { "githubuserid" : githubuserid, "repo" : repo }, _.p()))
+				var team = linkedrepo.team
+				var odeskuserid = linkedrepo.odeskuserid
+				var budget = markdown[2]
+				var visibility = 'private'
 
-			addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid)
+				addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid)
 
-			// todo: parse for markup saying we want to add a oDesk job,
-			// and remove this hackhooks thing ;)
-			_.p(db.collection('hackhooks').insert({
-				body : req.body,
-				query : req.query,
-				headers : req.headers
-			}, _.p()))
+				// todo: parse for markup saying we want to add a oDesk job,
+				// and remove this hackhooks thing ;)
+				_.p(db.collection('hackhooks').insert({
+					body : req.body,
+					query : req.query,
+					headers : req.headers
+				}, _.p()))
+			}
 
 			res.send("ok")
 		})
@@ -756,6 +765,7 @@ _.run(function () {
 					job.status = j.status
 					job.candidates = j.num_candidates
 					job.candidates_new = j.num_new_candidates
+					job.budget = j.budget
 					job.ats_url = 'https://www.odesk.com/jobs/' + job.opening + '/applications?applicants'
 					jobs.push(job)
 				}
