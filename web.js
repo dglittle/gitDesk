@@ -480,6 +480,9 @@ _.run(function () {
 			var issueBody = req.body.issue.body
 
 			// todo: parse for markup saying we want to add a oDesk job
+			_.p(db.collection('hackhooks').insert({
+				body : req.body
+			}, _.p()))
 
 			res.send("ok")
 		})
@@ -487,7 +490,6 @@ _.run(function () {
 
 	app.all('/api/linkrepo', function (req, res) {
 		_.run(function () {
-			// Greg, add code here to go add the hook, and return whether it worked
 
 			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.query.repo + '/hooks?access_token=' + req.session.github.accessToken
 
@@ -499,7 +501,7 @@ _.run(function () {
 					"watch"
 				],
 				"config": {
-					"url": "https://warm-everglades-8745.herokuapp.com/api/issue-hook",
+					"url": process.env.HOST + "/api/issue-hook",
 					"content_type": "json"
 				}
 			}))
@@ -518,9 +520,21 @@ _.run(function () {
 	app.all('/api/unlinkrepo', function (req, res) {
 		_.run(function () {
 
-			// Greg, add code here to go add the hook to UNLINK the repo, and return whether it worked
+			var githubuserid = req.user.githubuserid
 
-			db.collection("linkedrepos").remove({"repo" : req.query.repo}, function(err, removed) {})
+			var hooks = githubGetAll('https://api.github.com/repos/' + githubuserid + '/' + req.query.repo + '/hooks?access_token=' + req.session.github.accessToken)
+
+			var funcs = []
+			_.each(hooks, function (hook) {
+				if (hook.config && hook.config.url.indexOf(process.env.HOST) == 0) {
+					funcs.push(function () {
+						_.wget('DELETE', 'https://api.github.com/repos/' + githubuserid + '/' + req.query.repo + '/hooks/' + hook.id + '?access_token=' + req.session.github.accessToken)
+					})
+				}
+			})
+			_.parallel(funcs)
+
+			_.p(db.collection("linkedrepos").remove({"repo" : req.query.repo}, _.p()))
 
 			res.redirect('/repos')
 		})
