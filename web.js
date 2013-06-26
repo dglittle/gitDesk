@@ -154,7 +154,7 @@ _.run(function () {
             res.redirect('/auth')
         })
 
-// ------- ------- ------- ------- APP ROUTES GO HERE ------- ------- ------- -------
+// ------- ------- ------- ------- AUTH AND REDIRECT APP ROUTES ------- ------- ------- -------
 
 	// home page redirects to /issues
 	app.get('/', function (req, res) {
@@ -177,54 +177,27 @@ _.run(function () {
 		res.render('auth_contractor.html')
 	})
 
+// ------- ------- ------- ------- "GET" APP ROUTES ------- ------- ------- -------
 
-	// Require Login for all pages besides 'auth'
-	function requirelogin(req, res, next) {
-	    if (!req.user || !req.user.githubuserid || !req.user.odeskuserid) {
-	        res.redirect('/auth')
-		} else {
-	        next()
-	    }
-	}
-
-	function githubGetAll(u) {
-		var items = []
-		while (u) {
-			items = items.concat(_.unJson(_.wget(u)))
-			u = null
-			try {
-				u = _.wget.res.headers.link.match(/<([^>]*)>; rel="next"/)[1]
-			} catch (e) {}
-		}
-		return items
-	}
-
-	function getRepos (req) {
-		var githubuserid = req.user.githubuserid
-
-		var repos = githubGetAll('https://api.github.com/users/'+githubuserid+
-				'/repos?access_token=' + req.session.github.accessToken)
-				
-		var linked_repos =  _.p(db.collection("linkedrepos").find( { "githubuserid" : githubuserid } ).toArray(_.p()))
-		
-		_.each(repos, function(ghr) {
-			_.each(linked_repos, function(lr) {
-				if (ghr.name == lr.repo) {
-					ghr.is_linked = true
-				}
+	// Dashboard: View Open Bounties and Active Jobs
+	app.get('/issues', requirelogin, function (req, res) {
+		_.run(function(){
+			var jobs = getoDeskJobs(req)
+			var contracts = getoDeskContracts(req)
+			res.render('issues.html', {
+				jobs: jobs,
+				contracts: contracts
 			})
 		})
-	
-		return repos
-	}
+	})
 
-	// Add Issue
-    app.get('/addissue', requirelogin, function (req, res) {
+	// Add Bounty Form
+	app.get('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = getRepos(req) 
-			teams = getTeams(req)
-
-			res.render('addissue.html', {
+			repos = getRepos(req)
+			t = getTeams(req)
+			teams = t.sort(sort_by('company_name', false, function(a){return a.toUpperCase()}))
+			res.render('addbounty.html', {
 
 			})
 		})
@@ -243,93 +216,7 @@ _.run(function () {
 		})
 	})
 
-	// Add Bounty to Existing Issue (GET form)
-    app.get('/addbounty', requirelogin, function (req, res) {
-		_.run(function(){
-			repos = getRepos(req)
-			t = getTeams(req)
-			teams = t.sort(sort_by('company_name', false, function(a){return a.toUpperCase()}))
-			res.render('addbounty.html', {
-
-			})
-		})
-	})
-
-	// Add Bounty to Existing Issue (actually POST the bounty)
-    app.post('/addbounty', requirelogin, function (req, res) {
-		_.run(function(){
-			var o = getO(req)
-
-		    function getDateFromNow(fromNow) {
-		        var d = new Date(_.time() + fromNow)
-		        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
-		        return zeroPrefix(d.getMonth() + 1) + "-" + zeroPrefix(d.getDate()) + "-" + d.getFullYear()
-		    }
-
-			if (req.body.description.length > 200) {
-				var more = "... "
-				} else var more = ""
-
-			var description =	"Resolve the following GitHub issue:" + '\n\n'
-								+ req.body.githubissueurl + '\n\n'
-								+ "To apply, please answer the following questions:" + '\n'
-								+ "1) What is your GitHub ID?" + '\n'
-								+ "2) How long do you think it will take you to resolve this issue?" + '\n\n\n'
-								+ "********************************************" + '\n'
-								+ "The GitHub issue body begins as follows:" + '\n\n'
-								+ req.body.description.substring(0,200) + more
-			
-
-			var jobRef = _.p(o.post('hr/v2/jobs', {
-				buyer_team__reference : req.body.team,
-				category : 'Web Development',
-				subcategory : 'Web Programming',
-				title : req.body.title,
-				description : description,
-				budget : req.body.price,
-				visibility : 'private',
-				job_type : 'fixed-price',
-				end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
-			}, _.p())).job.reference
-
-			var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
-
-			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.body.repo_var + '/issues/' + req.body.issuenum + '?access_token=' + req.session.github.accessToken
-
-			var issue = _.unJson(_.wget(u))
-
-			var s = _.wget('PATCH', u, _.json({
-                body : 	"********************************************" + '\n' +
-						"I'm offering $" + (1*req.body.price).toFixed(2) + " on oDesk for someone to do this task: "
-						+ job.public_url + '\n'
-						+ "********************************************" + '\n\n'
-						+ issue.body
-			}))
-
-			var post = {
-				odesk: {
-					uid: req.session.odesk.id,
-					job_url: job.public_url,
-					recno: jobRef
-				},
-				github: {
-					uid: req.session.github.id,
-					issue_url: req.body.githubissueurl
-				}
-			}
-
-			logBounty(post)
-
-			res.render('confirmbounty.html', {
-				title: req.body.title,
-				description: description,
-				team: req.body.team,
-				joburl: job.public_url
-			})
-		})
-	})
-
-	// print jobs posted on gitDesk
+	// Admin History: view all bounties posted on gitDesk
     app.get('/admin/history', requirelogin, function (req, res) {
 		_.run(function(){
 			_.print('the filter posted ' + req.query.oDeskUserID)
@@ -337,17 +224,13 @@ _.run(function () {
 				var history = getGitDeskJobs(req.query.oDeskUserID) } else {
 				var history = getGitDeskJobs()
 			}
-			
-//			var history = _.p(db.collection("posts").find().toArray(_.p()))
-
-			console.log(history)
 			res.render('history.html', {
 				history: history
 			})
 		})
 	})
 
-	// View Issue Confirmation
+	// Add Bounty — Confirmation
     app.get('/confirm', requirelogin, function (req, res) {
 		_.run(function(){
 			res.render('confirmbounty.html', {
@@ -359,27 +242,102 @@ _.run(function () {
 		})
 	})
 
-	// View List of Open Issues
-    app.get('/issues', requirelogin, function (req, res) {
+	// Add Issue Form
+    app.get('/addissue', requirelogin, function (req, res) {
 		_.run(function(){
-			var jobs = getoDeskJobs(req)
-			var contracts = getoDeskContracts(req)
-			res.render('issues.html', {
-				jobs: jobs,
-				contracts: contracts
+			repos = getRepos(req) 
+			teams = getTeams(req)
+			res.render('addissue.html', {
 			})
 		})
 	})
 
-	// Page to Test APIs
-    app.get('/apitest', requirelogin, function (req, res) {
+// ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
+
+	function addbounty(req, issue, team) {
+
+		var o = getO(req)
+
+	    function getDateFromNow(fromNow) {
+	        var d = new Date(_.time() + fromNow)
+	        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
+	        return zeroPrefix(d.getMonth() + 1) + "-" + zeroPrefix(d.getDate()) + "-" + d.getFullYear()
+	    }
+
+		if (issue.description.length > 200) {
+			var more = "... "
+			} else var more = ""
+
+		var description =	"Resolve the following GitHub issue:" + '\n\n'
+							+ issue.html_url + '\n\n'
+							+ "To apply, please answer the following questions:" + '\n'
+							+ "1) What is your GitHub ID?" + '\n'
+							+ "2) How long do you think it will take you to resolve this issue?" + '\n\n\n'
+							+ "********************************************" + '\n'
+							+ "The GitHub issue body begins as follows:" + '\n\n'
+							+ issue.description.substring(0,200) + more
+		
+
+		var jobRef = _.p(o.post('hr/v2/jobs', {
+			buyer_team__reference : req.body.team,
+			category : 'Web Development',
+			subcategory : 'Web Programming',
+			title : req.body.title,
+			description : description,
+			budget : req.body.price,
+			visibility : 'private',
+			job_type : 'fixed-price',
+			end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
+		}, _.p())).job.reference
+
+		var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
+
+		var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.body.repo_var + '/issues/' + req.body.issuenum + '?access_token=' + req.session.github.accessToken
+
+		var issue = _.unJson(_.wget(u))
+
+		var s = _.wget('PATCH', u, _.json({
+            body : 	"********************************************" + '\n' +
+					"I'm offering $" + (1*req.body.price).toFixed(2) + " on oDesk for someone to do this task: "
+					+ job.public_url + '\n'
+					+ "********************************************" + '\n\n'
+					+ issue.body
+		}))
+
+		var post = {
+			odesk: {
+				uid: req.session.odesk.id,
+				job_url: job.public_url,
+				recno: jobRef
+			},
+			github: {
+				uid: req.session.github.id,
+				issue_url: req.body.githubissueurl
+			}
+		}
+
+		logBounty(post)
+		
+	}
+
+	// Add Bounty to Existing Issue
+    app.post('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
-			res.render('apitest.html', {
+			
+			addbounty(req)
+			
+
+
+			res.render('confirmbounty.html', {
+				title: req.body.title,
+				description: description,
+				team: req.body.team,
+				joburl: job.public_url
 			})
 		})
 	})
 
-	// Close an Issue, and Optionally Pay
+	// Close an Issue and Optionally Pay
     app.post('/closeissue', requirelogin, function (req, res) {
 		_.run(function(){
 
@@ -422,8 +380,51 @@ _.run(function () {
 		})
 	})
 
+// ------- ------- ------- ------- HELPER FUNCTIONS ------- ------- ------- -------
 
-// ------- ------- ------- ------- API FUNCTIONS GO HERE ------- ------- ------- -------
+	// Require Login for all pages besides 'auth'
+	function requirelogin(req, res, next) {
+	    if (!req.user || !req.user.githubuserid || !req.user.odeskuserid) {
+	        res.redirect('/auth')
+		} else { next() }
+	}
+
+	function githubGetAll(u) {
+		var items = []
+		while (u) {
+			items = items.concat(_.unJson(_.wget(u)))
+			u = null
+			try {
+				u = _.wget.res.headers.link.match(/<([^>]*)>; rel="next"/)[1]
+			} catch (e) {}
+		}
+		return items
+	}
+
+	function getRepos (req) {
+		var githubuserid = req.user.githubuserid
+		var repos = githubGetAll('https://api.github.com/users/'+githubuserid+
+				'/repos?access_token=' + req.session.github.accessToken)
+		var linked_repos =  _.p(db.collection("linkedrepos").find( { "githubuserid" : githubuserid } ).toArray(_.p()))
+		_.each(repos, function(ghr) {
+			_.each(linked_repos, function(lr) {
+				if (ghr.name == lr.repo) { ghr.is_linked = true }
+			})
+		})
+		return repos
+	}
+
+	// Page to Test APIs
+    app.get('/apitest', requirelogin, function (req, res) {
+		_.run(function(){
+			res.render('apitest.html', {
+			})
+		})
+	})
+
+
+
+// ------- ------- ------- ------- API FUNCTIONS ------- ------- ------- -------
 
 	app.get('/api/getissuebyurl', function(req, res) {
 		_.run(function() {
@@ -446,7 +447,6 @@ _.run(function () {
 
 	app.all('/api/getteams', function (req, res) {
 		_.run(function () {
-			_.print(getTeams(req))
 			res.json(getTeams(req))
 		})
 	})
@@ -461,7 +461,6 @@ _.run(function () {
 	app.all('/api/getodeskjobs', function (req, res) {
 		_.run(function () {
 			var a = getoDeskJobs(req)
-			_.print(a)
 			res.json(a)
 		})
 	})
