@@ -15,7 +15,7 @@
 			<strong class="oNull">{{job.budget}} bounty</strong>&nbsp;&nbsp;|&nbsp;&nbsp;
 			<a href="{{ job.ats_url }}">{{ job.candidates }} applicants</a>
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ job.odesk_url }}">view job on oDesk</a>
-			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="./api/canceljob?jobref={{job.opening}}&odeskuserid={{user.odeskuserid}}">Cancel this job</a></br></br>
+			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="./api/canceljob?jobref={{job.opening}}&odeskuserid={{user.odeskuserid}}">Cancel this job opening</a></br></br>
 		{% endfor %}
 	{% else %}<i>No open bounties</i>{% endif %}
 
@@ -27,8 +27,7 @@
 		<h1 class="oH5 oHInline">{{ contract.title }}</h1><span class="oNull">
 			<a href="{{ contract.github_url }}" style="color: inherit">{{ contract.github_url }}</a></span></br>
 			{{ contract.contractor }}&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ contract.odesk_url }}">view job on oDesk</a>
-			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#closeModal{{loop.index}}" data-toggle="modal" id="close1">Close and Pay</a>
-			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#">Cancel Job</a></br></br>
+			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#closeModal{{loop.index}}" data-toggle="modal" id="close1">Close and Pay</a></br></br>
 		{% endfor %}
   	{% else %}<i>No active jobs</i>{% endif %}
   </div> <!-- end of "main" dashboard section -->
