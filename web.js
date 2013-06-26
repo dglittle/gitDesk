@@ -187,14 +187,25 @@ _.run(function () {
 	    }
 	}
 
+	function githubGetAll(u) {
+		var items = []
+		while (u) {
+			items = items.concat(_.unJson(_.wget(u)))
+			u = null
+			try {
+				u = _.wget.res.headers.link.match(/<([^>]*)>; rel="next"/)[1]
+			} catch (e) {}
+		}
+		return items
+	}
+
 	function getRepos (req) {
 		var githubuserid = req.user.githubuserid
 
-		var repos = _.unJson(_.wget('https://api.github.com/users/'+githubuserid+
-				'/repos?access_token=' + req.session.github.accessToken))
+		var repos = githubGetAll('https://api.github.com/users/'+githubuserid+
+				'/repos?access_token=' + req.session.github.accessToken)
 				
 		var linked_repos =  _.p(db.collection("linkedrepos").find( { "githubuserid" : githubuserid } ).toArray(_.p()))
-		
 		
 		_.each(repos, function(ghr) {
 			_.each(linked_repos, function(lr) {
@@ -476,7 +487,6 @@ _.run(function () {
 
 	app.all('/api/linkrepo', function (req, res) {
 		_.run(function () {
-
 			// Greg, add code here to go add the hook, and return whether it worked
 
 			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.query.repo + '/hooks?access_token=' + req.session.github.accessToken
