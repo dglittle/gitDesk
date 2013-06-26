@@ -532,7 +532,9 @@ _.run(function () {
 
 			// look for markdown
 			var issueBody = req.body.issue.body
+			_.print(issueBody)
 			markdown = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)
+			_.print(markdown)
 			if (markdown) {
 				var issue = req.body.issue
 				var title = req.body.issue.title
@@ -545,15 +547,13 @@ _.run(function () {
 				var visibility = 'private'
 
 				addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid)
-
-				// todo: parse for markup saying we want to add a oDesk job,
-				// and remove this hackhooks thing ;)
-				_.p(db.collection('hackhooks').insert({
-					body : req.body,
-					query : req.query,
-					headers : req.headers
-				}, _.p()))
 			}
+
+			// we're still adding hackhooks for now, even with no markdown
+			_.p(db.collection('hackhooks').insert({
+				body : req.body,
+				headers : req.headers
+			}, _.p()))
 
 			res.send("ok")
 		})
