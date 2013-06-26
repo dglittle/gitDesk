@@ -54,6 +54,19 @@ _.run(function () {
 	app.set('views', './templates');
 
     app.use(express.cookieParser())
+
+	app.use(function(req, res, next) {
+	    var data = []
+	    req.setEncoding('utf8')
+	    req.on('data', function (chunk) {
+	    	data.push(chunk)
+	    })
+	    req.on('end', function () {
+	    	req.rawBody = data.join('')
+	    })
+        next()
+	})
+
     app.use(express.bodyParser())
 
     app.use(function (req, res, next) {
@@ -476,6 +489,20 @@ _.run(function () {
 
 	app.all('/api/issue-hook', function (req, res) {
 		_.run(function () {
+			// make sure the request is from github
+			hmac = require('crypto').createHmac('sha1', process.env.GITHUB_CLIENT_SECRET).update(req.rawBody).digest("hex")
+
+			_.print('rawBody')
+			_.print(rawBody)
+			_.print('hmac')
+			_.print(hmac)
+			_.print('should be')
+			_.print(req.headers['x-hub-signature'].split(/=/)[1])
+
+			if (hmac != req.headers['x-hub-signature'].split(/=/)[1]) {
+				throw new Error("request doesn't seem to be from github")
+			}
+
 			// make sure the issue is added by us, so other people can't add jobs for us by creating issues, since anyone can create an issue
 			if (req.body.issue.user.login != req.body.repository.owner.login) {
 				throw new Error('issue not created by repository owner')
