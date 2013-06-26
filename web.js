@@ -482,7 +482,7 @@ function endJob(jobref, odeskuserid) {
 			
 			// look for markdown
 			var issueBody = 'Here is the issue name.\noDesk bounty: $10.44\nAnd some more'
-			bounty = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)[2]
+			bounty = issueBody.match(/(odesk bounty:\s*$?)(\d+\.\d+)/i)[2]
 
 			res.render('apitest.html', {
 			})
@@ -565,7 +565,7 @@ function endJob(jobref, odeskuserid) {
 			var issueBody = req.body.issue.body
 			_.print('issueBody = ')
 			_.print(issueBody)
-			markdown = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)
+			markdown = issueBody.match(/(odesk bounty:\s*$?)(\d+(\.\d+)?)/i)[2]
 			_.print('markdown = ')
 			_.print(markdown)
 
