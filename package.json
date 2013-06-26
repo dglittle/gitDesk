@@ -3,6 +3,9 @@
   "description": "node + odesk",
   "version": "0.0.1",
   "dependencies": {
+
+	"accounting": "*",
+
     "express": "*",
     
     "mongojs": "*",

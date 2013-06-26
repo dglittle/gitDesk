@@ -25,10 +25,10 @@ process.on('uncaughtException', function (err) {
     } catch (e) {}
 })
 
-var cons = require('consolidate');
-var swig  = require('swig');
+var cons = require('consolidate')
+var swig  = require('swig')
 var _ = require('gl519')
-var accounting = require('./accounting.js')
+var accounting = require('accounting')
 
 _.run(function () {
 
