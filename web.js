@@ -565,7 +565,7 @@ function endJob(jobref, odeskuserid) {
 			var issueBody = req.body.issue.body
 			_.print('issueBody = ')
 			_.print(issueBody)
-			markdown = issueBody.match(/(odesk bounty:\s*$?)(\d+(\.\d+)?)/i)[2]
+			markdown = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
 			_.print('markdown = ')
 			_.print(markdown)
 
