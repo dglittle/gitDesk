@@ -492,7 +492,7 @@ _.run(function () {
 			hmac = require('crypto').createHmac('sha1', process.env.GITHUB_CLIENT_SECRET).update(req.rawBody).digest("hex")
 
 			_.print('rawBody')
-			_.print(rawBody)
+			_.print(req.rawBody)
 			_.print('hmac')
 			_.print(hmac)
 			_.print('should be')
