@@ -28,6 +28,7 @@ process.on('uncaughtException', function (err) {
 var cons = require('consolidate');
 var swig  = require('swig');
 var _ = require('gl519')
+var accounting = require('./accounting.js')
 
 _.run(function () {
 
@@ -200,12 +201,18 @@ _.run(function () {
 		_.run(function(){
 			var jobs = getoDeskJobs(req)
 			var contracts = getoDeskContracts(req)
+			var repos = getLinkedRepos(req.session.github.id)
 			res.render('issues.html', {
 				jobs: jobs,
-				contracts: contracts
+				contracts: contracts,
+				repos : repos
 			})
 		})
 	})
+
+	function getLinkedRepos(githubuserid) {
+		return _.p(db.collection("linkedrepos").find( { "githubuserid" : githubuserid } ).toArray(_.p()))
+	}
 
 	// Add Bounty Form
 	app.get('/addbounty', requirelogin, function (req, res) {
@@ -320,6 +327,8 @@ _.run(function () {
 		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
 		
 		u = issue.url + '?access_token=' + g.accessToken
+
+		issue.body = issue.body.replace()
 
 		var s = _.wget('PATCH', u, _.json({
             body : 	"********************************************" + '\n' +
@@ -438,7 +447,7 @@ _.run(function () {
 		var githubuserid = req.user.githubuserid
 		var repos = githubGetAll('https://api.github.com/users/'+githubuserid+
 				'/repos?access_token=' + req.session.github.accessToken)
-		var linked_repos =  _.p(db.collection("linkedrepos").find( { "githubuserid" : githubuserid } ).toArray(_.p()))
+		var linked_repos =  getLinkedRepos(githubuserid)
 		_.each(repos, function(ghr) {
 			_.each(linked_repos, function(lr) {
 				if (ghr.name == lr.repo) { 
@@ -457,9 +466,7 @@ _.run(function () {
 			var issueBody = 'Here is the issue name.\noDesk bounty: $10.44\nAnd some more'
 			bounty = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)[2]
 			_.print(bounty)
-			
-			
-			
+
 			res.render('apitest.html', {
 			})
 		})
@@ -532,9 +539,12 @@ _.run(function () {
 
 			// look for markdown
 			var issueBody = req.body.issue.body
+			_.print('issueBody = ')
 			_.print(issueBody)
 			markdown = issueBody.match(/(odesk bounty: \$)(\d+\.\d+)/i)
+			_.print('markdown = ')
 			_.print(markdown)
+
 			if (markdown) {
 				var issue = req.body.issue
 				var title = req.body.issue.title
@@ -765,7 +775,7 @@ _.run(function () {
 					job.status = j.status
 					job.candidates = j.num_candidates
 					job.candidates_new = j.num_new_candidates
-					job.budget = j.budget
+					job.budget = accounting.formatMoney(j.budget)
 					job.ats_url = 'https://www.odesk.com/jobs/' + job.opening + '/applications?applicants'
 					jobs.push(job)
 				}

@@ -4,12 +4,15 @@
 
 {% block body %}
 
-	<h1>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;">Jobs with linked issues</span></h1>
+<div class="oLayout oLayoutDash">
+  <div class="oMain">
+	<h2>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Jobs with linked issues</span></h2>
 
 	{% if jobs %}
 		{% for job in jobs %}
 		<h1 class="oH5 oHInline">{{ job.title }}</h1><span class="oNull">
 			<a href="{{ job.github_url }}" style="color: inherit">{{ job.github_url }}</a></span></br>
+			<strong class="oNull">{{job.budget}} bounty</strong>&nbsp;&nbsp;|&nbsp;&nbsp;
 			<a href="{{ job.ats_url }}">{{ job.candidates }} applicants</a>
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ job.odesk_url }}">view job on oDesk</a></br></br>
 		{% endfor %}
@@ -17,7 +20,7 @@
 
 	<a class="oBtn oBtnPrimary" href="../addbounty">Add Bounty</a>
 	</br></br></br></br>
-	<h1>Active Jobs&nbsp;&nbsp;<span style="font-size: 0.5em;font-family:sans-serif;">Issues you have hired someone to resolve</span></h1>
+	<h2>Active Jobs&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Issues you have hired someone to resolve</span></h2>
 	{% if contracts %}
 		{% for contract in contracts %}
 		<h1 class="oH5 oHInline">{{ contract.title }}</h1><span class="oNull">
@@ -27,6 +30,21 @@
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#">Cancel Job</a></br></br>
 		{% endfor %}
   	{% else %}<i>No active jobs</i>{% endif %}
+  </div> <!-- end of "main" dashboard section -->
+
+  <aside class="oSide">
+	<h2>Linked Repos</h2>
+	{% if repos|length > 0 %}
+	You have {{repos|length}} linked repo{% if repos|length > 1 %}s{% endif %}:
+	<ul class="oStretchList">
+		{% for repo in repos %}<li>/{{repo.repo}}</li>{% endfor %}
+	</ul></br>
+	<a class="oBtn oBtnPrimary" href="../repos">Manage Linked Repos</a>
+	{% else %}
+	<p>Post jobs automatically from within GitHub by linking a repo to gitDesk!</p>
+	<a class="oBtn oBtnPrimary" href="../repos">Link a Repo to gitDesk</a>
+	{% endif %}
+  </aside>
 
 {% if contracts %}
 	{% for contract in contracts %}

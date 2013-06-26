@@ -1,0 +1,74 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/Cellar/node/0.10.5/bin/node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   'accounting.js' ]
+2 info using npm@1.2.18
+3 info using node@v0.10.5
+4 verbose read json /Users/mlevinson/Sites/gitDesk/package.json
+5 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/connect-mongo/package.json
+6 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/consolidate/package.json
+7 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/express/package.json
+8 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/gl519/package.json
+9 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/mongodb/package.json
+10 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/mongojs/package.json
+11 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/node-odesk/package.json
+12 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/node-odesk-utils/package.json
+13 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/passport/package.json
+14 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/passport-github/package.json
+15 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/passport-oauth/package.json
+16 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/passport-odesk/package.json
+17 verbose read json /Users/mlevinson/Sites/gitDesk/node_modules/swig/package.json
+18 verbose from cache /Users/mlevinson/Sites/gitDesk/package.json
+19 verbose readDependencies using package.json deps
+20 verbose cache add [ 'accounting.js', null ]
+21 verbose cache add name=undefined spec="accounting.js" args=["accounting.js",null]
+22 verbose parsed url { protocol: null,
+22 verbose parsed url   slashes: null,
+22 verbose parsed url   auth: null,
+22 verbose parsed url   host: null,
+22 verbose parsed url   port: null,
+22 verbose parsed url   hostname: null,
+22 verbose parsed url   hash: null,
+22 verbose parsed url   search: null,
+22 verbose parsed url   query: null,
+22 verbose parsed url   pathname: 'accounting.js',
+22 verbose parsed url   path: 'accounting.js',
+22 verbose parsed url   href: 'accounting.js' }
+23 silly lockFile 21645d94-accounting-js accounting.js
+24 verbose lock accounting.js /Users/mlevinson/.npm/21645d94-accounting-js.lock
+25 silly lockFile 21645d94-accounting-js accounting.js
+26 silly lockFile 21645d94-accounting-js accounting.js
+27 verbose addNamed [ 'accounting.js', '' ]
+28 verbose addNamed [ null, '' ]
+29 silly lockFile 5282c6c2-accounting-js accounting.js@
+30 verbose lock accounting.js@ /Users/mlevinson/.npm/5282c6c2-accounting-js.lock
+31 silly addNameRange { name: 'accounting.js', range: '', hasData: false }
+32 verbose url raw accounting.js
+33 verbose url resolving [ 'https://registry.npmjs.org/', './accounting.js' ]
+34 verbose url resolved https://registry.npmjs.org/accounting.js
+35 info trying registry request attempt 1 at 09:18:06
+36 http GET https://registry.npmjs.org/accounting.js
+37 http 404 https://registry.npmjs.org/accounting.js
+38 silly registry.get cb [ 404,
+38 silly registry.get   { server: 'CouchDB/1.3.0 (Erlang OTP/R15B03)',
+38 silly registry.get     date: 'Wed, 26 Jun 2013 16:18:06 GMT',
+38 silly registry.get     'content-type': 'application/json',
+38 silly registry.get     'content-length': '52',
+38 silly registry.get     'cache-control': 'must-revalidate' } ]
+39 silly lockFile 5282c6c2-accounting-js accounting.js@
+40 silly lockFile 5282c6c2-accounting-js accounting.js@
+41 error 404 'accounting.js' is not in the npm registry.
+41 error 404 You should bug the author to publish it
+41 error 404
+41 error 404 Maybe try 'npm search accounting'
+41 error 404
+41 error 404 Note that you can also install from a
+41 error 404 tarball, folder, or http url, or git url.
+42 error System Darwin 11.4.2
+43 error command "/usr/local/Cellar/node/0.10.5/bin/node" "/usr/local/bin/npm" "install" "accounting.js"
+44 error cwd /Users/mlevinson/Sites/gitDesk
+45 error node -v v0.10.5
+46 error npm -v 1.2.18
+47 error code E404
+48 verbose exit [ 1, true ]

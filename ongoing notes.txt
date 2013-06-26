@@ -1,9 +1,9 @@
 TO DO
 - Replace gitDesk logging with github.com regex
-- Minimum payment of $1.00
-- Create env variable to use heroku DB locally as well
-- If closed with payment, edit the issue ("done!") and (optionally) close the GitHub issue
-
+- Have the listener remove the markdown after creating the job and prepending the meta-data to the issue
+- Enforce a minimum payment of $1.00 (in the "close and pay" dialog)
+- When closing the job, edit the issue ("done!") and add the option to close the GitHub issue
+- Add a "required skills" option to the markdown
 
 
 -----------------------
