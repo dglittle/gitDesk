@@ -565,9 +565,9 @@ function endJob(jobref, odeskuserid) {
 			var issueBody = req.body.issue.body
 			_.print('issueBody = ')
 			_.print(issueBody)
-			markdown = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
-			_.print('markdown = ')
-			_.print(markdown)
+			var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
+			_.print('bounty = ')
+			_.print(bounty)
 
 			if (markdown) {
 				var issue = req.body.issue
@@ -577,7 +577,7 @@ function endJob(jobref, odeskuserid) {
 				var linkedrepo = _.p(db.collection("linkedrepos").findOne( { "githubuserid" : githubuserid, "repo" : repo }, _.p()))
 				var team = linkedrepo.team
 				var odeskuserid = linkedrepo.odeskuserid
-				var budget = markdown[2]
+				var budget = bounty
 				var visibility = 'private'
 
 				addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid)
