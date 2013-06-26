@@ -481,7 +481,8 @@ _.run(function () {
 
 			// todo: parse for markup saying we want to add a oDesk job
 			_.p(db.collection('hackhooks').insert({
-				body : req.body
+				body : req.body,
+				query : req.query
 			}, _.p()))
 
 			res.send("ok")
