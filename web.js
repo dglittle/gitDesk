@@ -526,11 +526,11 @@ _.run(function () {
 			
 			// add req stuff ?
 			var issue = req.body.issue
-			var team = getTeamByRepo()
 			var title = req.body.issue.title
 			var githubuserid = req.body.issue.user.login
 			var repo = req.body.repository.name
 			var linkedrepo = _.p(db.collection("linkedrepos").findOne( { "githubuserid" : githubuserid, "repo" : repo }, _.p()))
+			var team = linkedrepo.team
 			var odeskuserid = linkedrepo.odeskuserid
 			var budget = 2.22 // parse the description for the budget
 			var visibility = 'public'
