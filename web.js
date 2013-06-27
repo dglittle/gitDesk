@@ -569,34 +569,41 @@ function endJob(jobref, odeskuserid) {
 				throw new Error('issue not created by repository owner')
 			}
 
-			// look for bounty in the issue body
-			try {
-				var issueBody = req.body.issue.body			
-				var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
-				_.print('bounty = ' + bounty)
-				var linkedrepo = _.p(db.collection("linkedrepos").findOne({
-					"githubuserid" : req.body.issue.user.login,
-					"repo" : req.body.repository.name
-				}, _.p()))
-			
-				// look for visibility
-				var visibility = 'private'
-				try { visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
-
-				// look for skills
-				var skills = ''   // this will be a string of comma-separated skills
+			// if it's an open, add a job; if it's a close, close the job(?)
+			var action = req.body.issue.action
+			if (action == 'opened') {
+				// look for bounty in the issue body
 				try {
-					var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
-					skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
-					skills = skill_array.join(';')
-					_.print('skills: ' + skills)
-				} catch (e) {}
+					var issueBody = req.body.issue.body			
+					var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
+					_.print('bounty = ' + bounty)
+					var linkedrepo = _.p(db.collection("linkedrepos").findOne({
+						"githubuserid" : req.body.issue.user.login,
+						"repo" : req.body.repository.name
+					}, _.p()))
 
-				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, skills)
-				
-			} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
+					// look for visibility
+					var visibility = 'private'
+					try { visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
 
-			// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
+					// look for skills
+					var skills = ''   // this will be a string of comma-separated skills
+					try {
+						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
+						skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
+						skills = skill_array.join(';')
+						_.print('skills: ' + skills)
+					} catch (e) {}
+
+					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, skills)
+
+				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
+
+				// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
+
+			} else if (action == 'closed') {
+				// possibly close the job
+			}
 
 			// we're still adding hackhooks for now, even with no markdown
 			_.p(db.collection('hackhooks').insert({
