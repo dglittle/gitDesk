@@ -32,6 +32,7 @@ var accounting = require('accounting')
 
 _.run(function () {
 
+	var skill_dict = _.makeSet(_.unJson(_.read('./skills.json')))
     var db = require('mongojs').connect(process.env.MONGOHQ_URL, ['users'])
 
     db.createCollection('logs', {capped : true, size : 10000}, function () {})
@@ -307,7 +308,7 @@ _.run(function () {
 							+ "The GitHub issue body begins as follows:" + '\n\n'
 							+ issue.body.substring(0,200) + more
 
-		var post = 					{
+		var post = 			{
 								buyer_team__reference : team,
 								category : 'Web Development',
 								subcategory : 'Web Programming',
@@ -318,49 +319,50 @@ _.run(function () {
 								job_type : 'fixed-price',
 								end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
 							}
+		if (false) {
+			var jobRef = _.p(o.post('hr/v2/jobs', {
+				buyer_team__reference : team,
+				category : 'Web Development',
+				subcategory : 'Web Programming',
+				title : title,
+				description : description,
+				budget : budget,
+				visibility : visibility,
+				job_type : 'fixed-price',
+				end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
+			}, _.p())).job.reference
 
-		var jobRef = _.p(o.post('hr/v2/jobs', {
-			buyer_team__reference : team,
-			category : 'Web Development',
-			subcategory : 'Web Programming',
-			title : title,
-			description : description,
-			budget : budget,
-			visibility : visibility,
-			job_type : 'fixed-price',
-			end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
-		}, _.p())).job.reference
+			var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
 
-		var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
-
-		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
+			var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
 		
-		u = issue.url + '?access_token=' + g.accessToken
+			u = issue.url + '?access_token=' + g.accessToken
 
-		issue.body = issue.body.replace()
+			issue.body = issue.body.replace()
 
-		var s = _.wget('PATCH', u, _.json({
-            body : 	"********************************************" + '\n' +
-					"I'm offering $" + (1*budget).toFixed(2) + " on oDesk for someone to do this task: "
-					+ job.public_url + '\n'
-					+ "********************************************" + '\n\n'
-					+ issue.body
-		}))
+			var s = _.wget('PATCH', u, _.json({
+	            body : 	"********************************************" + '\n' +
+						"I'm offering $" + (1*budget).toFixed(2) + " on oDesk for someone to do this task: "
+						+ job.public_url + '\n'
+						+ "********************************************" + '\n\n'
+						+ issue.body
+			}))
 
-		var post = {
-			odesk: {
-				uid: odeskuserid,
-				job_url: job.public_url,
-				recno: jobRef
-			},
-			github: {
-				uid: githubuserid,
-				issue_url: issue.html_url
+			var post = {
+				odesk: {
+					uid: odeskuserid,
+					job_url: job.public_url,
+					recno: jobRef
+				},
+				github: {
+					uid: githubuserid,
+					issue_url: issue.html_url
+				}
 			}
-		}
 
-		logBounty(post)
-		return post
+			logBounty(post)
+			return post
+		}
 	}
 
 	// Add Bounty to Existing Issue	
@@ -495,15 +497,16 @@ function endJob(jobref, odeskuserid) {
     app.get('/apitest', requirelogin, function (req, res) {
 		_.run(function(){
 			
-			// look for markdown
-			var issueBody = 'Here is the issue name.\noDesk bounty: $10.44\nAnd some more'
-			bounty = issueBody.match(/(odesk bounty:\s*$?)(\d+\.\d+)/i)[2]
+			var skill = 'javascript, php'
+			var skills = skill.split(/\s*,\s*/i)			
+			var ok = _.all(skills, function(skill) { return skill_dict[skill] })
+
+			_.print(ok)
 
 			res.render('apitest.html', {
 			})
 		})
 	})
-
 
 
 // ------- ------- ------- ------- API FUNCTIONS ------- ------- ------- -------
@@ -578,6 +581,8 @@ function endJob(jobref, odeskuserid) {
 
 			// look for bounty in the issue body
 			var issueBody = req.body.issue.body
+			// var issueBody= 'asdfkjh asdgkjh\nodesk bounty: 40\nodesk skills: php, javascript'			
+			
 			var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
 			_.print('bounty = ' + bounty)
 			if (bounty) {
@@ -590,6 +595,16 @@ function endJob(jobref, odeskuserid) {
 				var v = issueBody.match(/(odesk\s*visibility\s*:\s*)(\w+)/i)[2]
 				_.print('visibility = ' + v)
 				if (v == 'private' || v == 'public') { visibility = v }
+				
+				// look for skills
+				var skill = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2]
+				_.print('skills from the issue:')
+				_.print(skill)
+				var skills = skill.split(/\s*,\s*/i)
+				var ok = _.all(skills, function(skill) { return skill_dict[skill] })
+				_.print('parsed skills:')
+				_.print(skills)
+				_.print('all skills in there? ' + ok)
 
 				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid)
 			}
