@@ -286,7 +286,7 @@ _.run(function () {
 
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
-	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid) {
+	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid, skills) {
 		var o = getOByUserID(odeskuserid)
 
 	    function getDateFromNow(fromNow) {
@@ -317,27 +317,17 @@ _.run(function () {
 								budget : budget,
 								visibility : visibility,
 								job_type : 'fixed-price',
-								end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
+								end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7),
+								skills : skills
 							}
 		if (true) {
-			var jobRef = _.p(o.post('hr/v2/jobs', {
-				buyer_team__reference : team,
-				category : 'Web Development',
-				subcategory : 'Web Programming',
-				title : title,
-				description : description,
-				budget : budget,
-				visibility : visibility,
-				job_type : 'fixed-price',
-				end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
-			}, _.p())).job.reference
 
-			var job = _.p(o.get('hr/v2/jobs/' + jobRef, _.p())).job
+			// post the oDesk job!
+			var job = _.p(o.post('hr/v2/jobs', post, _.p())).job
 
+			// update the gitDesk issue
 			var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
-		
 			u = issue.url + '?access_token=' + g.accessToken
-
 			issue.body = issue.body.replace()
 
 			var s = _.wget('PATCH', u, _.json({
@@ -352,7 +342,7 @@ _.run(function () {
 				odesk: {
 					uid: odeskuserid,
 					job_url: job.public_url,
-					recno: jobRef
+					recno: job.reference
 				},
 				github: {
 					uid: githubuserid,
@@ -594,7 +584,7 @@ function endJob(jobref, odeskuserid) {
 				try { visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
 
 				// look for skills
-				var skills = ''
+				var skills = ''   // this will be a string of comma-separated skills
 				try {
 					var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
 					skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
@@ -604,7 +594,7 @@ function endJob(jobref, odeskuserid) {
 					_.print(skills)
 				} catch (e) {}
 
-				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid)
+				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, skills)
 				
 			} catch (e) { _.print('doh!') }
 
