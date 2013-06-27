@@ -720,7 +720,7 @@ function endJob(jobref, odeskuserid) {
 		var companies = []
 
 		_.each(teams, function(team) {
-			if (team.company__reference == team.reference) {
+			if (team.company__reference == team.team__reference) {
 				companies.push(team)
 			}
 		})
@@ -770,6 +770,7 @@ function endJob(jobref, odeskuserid) {
 	
 		// get the companies this user is in
 		var companies = getCompanies(req)
+		_.print(companies)
 		
 		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
 		var j = []
