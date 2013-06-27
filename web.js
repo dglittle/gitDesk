@@ -592,19 +592,19 @@ function endJob(jobref, odeskuserid) {
 
 				// look for visibility
 				var visibility = 'private'
-				var v = issueBody.match(/(odesk\s*visibility\s*:\s*)(\w+)/i)[2]
-				_.print('visibility = ' + v)
-				if (v == 'private' || v == 'public') { visibility = v }
-				
+				try { visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
+
 				// look for skills
-				var skill = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2]
-				_.print('skills from the issue:')
-				_.print(skill)
-				var skills = skill.split(/\s*,\s*/i)
-				var ok = _.all(skills, function(skill) { return skill_dict[skill] })
-				_.print('parsed skills:')
-				_.print(skills)
-				_.print('all skills in there? ' + ok)
+				var skills = ''
+
+				try {
+					var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
+					skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
+					_.print('skills that are in the dictionary:')
+					_.print(skill_array)
+					skills = skill_array.join(',')
+					_.print(skills)
+				} catch (e) {}
 
 				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid)
 			}
