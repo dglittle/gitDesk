@@ -778,16 +778,17 @@ function endJob(jobref, odeskuserid) {
     function getoDeskJobs(req) {
 	
 		// get the companies this user is in
-		var companies = getCompanies(req)
+		var teams = getTeams(req)
 		
 		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
 		var j = []
 		var jobs = []
 
 		// get all jobs the user has access to and put them in an array
-		_.each(companies, function(company) {
+		_.each(teams, function(team) {
+			_.print(teams)
 			try {
-				j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + company.company__reference + '&status=open&page=0;100', _.p())).jobs.job)
+				j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + team.team__reference + '&status=open&page=0;100', _.p())).jobs.job)
 			} catch (e) { _.print('oDesk API failed to get jobs') }
 		})
 
