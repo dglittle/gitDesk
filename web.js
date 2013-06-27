@@ -288,7 +288,7 @@ _.run(function () {
 
 	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid, skills) {
 		var o = getOByUserID(odeskuserid)
-
+		_.print(arguments)
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
 	        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
@@ -588,15 +588,13 @@ function endJob(jobref, odeskuserid) {
 				try {
 					var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
 					skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
-					_.print('skills that are in the dictionary:')
-					_.print(skill_array)
 					skills = skill_array.join(',')
-					_.print(skills)
+					_.print('skills: ' + skills)
 				} catch (e) {}
 
 				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, skills)
 				
-			} catch (e) { _.print('doh!') }
+			} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
 			// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
 
