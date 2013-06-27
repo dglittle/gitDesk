@@ -588,7 +588,7 @@ function endJob(jobref, odeskuserid) {
 				try {
 					var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
 					skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
-					skills = skill_array.join(',')
+					skills = skill_array.join(';')
 					_.print('skills: ' + skills)
 				} catch (e) {}
 
@@ -772,7 +772,6 @@ function endJob(jobref, odeskuserid) {
 	
 		// get the companies this user is in
 		var companies = getCompanies(req)
-		_.print(companies)
 		
 		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
 		var j = []
@@ -851,8 +850,6 @@ function endJob(jobref, odeskuserid) {
 			}
 		})
 
-//		_.print('contracts = ')
-//		_.print(contracts)
 		return contracts
 	} 
 
