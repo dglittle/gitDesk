@@ -566,17 +566,17 @@ function endJob(jobref, odeskuserid) {
 			var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
 			_.print('bounty = ' + bounty)
 			if (bounty) {
-				var issue = req.body.issue
-				var title = req.body.issue.title
-				var githubuserid = req.body.issue.user.login
-				var repo = req.body.repository.name
-				var linkedrepo = _.p(db.collection("linkedrepos").findOne( { "githubuserid" : githubuserid, "repo" : repo }, _.p()))
-				var team = linkedrepo.team
-				var odeskuserid = linkedrepo.odeskuserid
-				var budget = bounty
-				var visibility = 'private'
 
-				addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid)
+				var linkedrepo = _.p(db.collection("linkedrepos").findOne({
+					"githubuserid" : req.body.issue.user.login,
+					"repo" : req.body.repository.name }, _.p()))
+
+				var visibility = 'private'   // look for this next
+				var v = issueBody.match(/(odesk\s*visibility\s*:\s*)(\w+)/i)[2]
+				_.print('visibility = ' + v)
+				if (v == 'private' || v == 'public') { visibility = v }
+
+				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, githubuserid)
 			}
 
 			// we're still adding hackhooks for now, even with no markdown
