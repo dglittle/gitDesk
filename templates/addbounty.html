@@ -57,7 +57,7 @@
 	  <label class="oLabel">oDesk Team</label>
 	  <select id="selectteam" name="teamname" class="oFormMed valid">
 		{% for t in teams %}
-		  <option teamref="{{t.reference}}">{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</option>
+		  <option teamref="{{t.team__reference}}">{{t.company__name}}&nbsp;&gt;&nbsp;{{t.team__name}}</option>
 		{% endfor %}
 	  </select>
 	  <span class="oHint">Which team would you like to post this job in?</span>

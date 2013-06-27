@@ -219,7 +219,7 @@ _.run(function () {
 		_.run(function(){
 			repos = getRepos(req)
 			t = getTeams(req)
-			teams = t.sort(sort_by('company_name', false, function(a){return a.toUpperCase()}))
+			teams = t.sort(sort_by('company__name', false, function(a){return a.toUpperCase()}))
 			res.render('addbounty.html', {
 
 			})
@@ -234,7 +234,7 @@ _.run(function () {
 			_.each(repos, function(ghr) {
 				if (ghr.is_linked) {
 					_.each(teams, function(team) {
-						if (ghr.team == team.reference) { ghr.team_name = team.company_name + ' > ' + team.name }
+						if (ghr.team == team.team__reference) { ghr.team_name = team.company__name + ' > ' + team.team__name }
 					})
 				}
 			})
@@ -687,7 +687,15 @@ function endJob(jobref, odeskuserid) {
 	}
 
 	function getTeams(req) {
-		return _.p(getO(req).get('hr/v2/teams', _.p())).teams
+		var t = _.p(getO(req).get('hr/v2/userroles', _.p())).userroles.userrole
+		var teams = []
+		_.each(t, function(t) {
+			var hm = false
+			var u = t.permissions.permission
+			_.each(u, function(u) { if (u == 'manage_employment') { u = true } })
+			if (u) { teams.push(t) }
+		})
+		return teams
 	}
 
 	function getCompanies(req) {
@@ -740,20 +748,6 @@ function endJob(jobref, odeskuserid) {
 		return companies
 	}
 
-
-	// test get companies and teams
-	app.get('/getteams', function(req, res) {
-		_.run(function() {
-			var array = getCompaniesAndTeams(req)
-
-//			console.log(array) 
-
-			res.render('test.html', {
-				array: array
-			})
-
-		})
-	})
 
     function getoDeskJobs(req) {
 	

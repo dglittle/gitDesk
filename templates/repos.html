@@ -31,14 +31,14 @@
 					<a class="dropdown-toggle" data-toggle="dropdown" href="#"><small>link repo</small></a>
 					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" style="width: 300px;">
 						{% for t in teams %}
-							<li><small><a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.reference}}" >
-								{{t.company_name}}&nbsp;&gt;&nbsp;{{t.name}}</a></small></li>
+							<li><small><a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}" >
+								{{t.company__name}}&nbsp;&gt;&nbsp;{{t.team__name}}</a></small></li>
 						{% endfor %}
 					</ul>
 				</div>
 			{% else %}
 				{% for t in teams %}
-				<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.reference}}" ><small>link repo</small></a>
+				<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}"><small>link repo</small></a>
 				{% endfor %}
 			{% endif %}
 			{% endif %}
