@@ -580,23 +580,21 @@ function endJob(jobref, odeskuserid) {
 			}
 
 			// look for bounty in the issue body
-			var issueBody = req.body.issue.body
-			// var issueBody= 'asdfkjh asdgkjh\nodesk bounty: 40\nodesk skills: php, javascript'			
-			
-			var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
-			_.print('bounty = ' + bounty)
-			if (bounty) {
+			try {
+				var issueBody = req.body.issue.body			
+				var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
+				_.print('bounty = ' + bounty)
 				var linkedrepo = _.p(db.collection("linkedrepos").findOne({
 					"githubuserid" : req.body.issue.user.login,
-					"repo" : req.body.repository.name }, _.p()))
-
+					"repo" : req.body.repository.name
+				}, _.p()))
+			
 				// look for visibility
 				var visibility = 'private'
 				try { visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
 
 				// look for skills
 				var skills = ''
-
 				try {
 					var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
 					skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
@@ -607,7 +605,8 @@ function endJob(jobref, odeskuserid) {
 				} catch (e) {}
 
 				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid)
-			}
+				
+			} catch (e) { _.print('doh!') }
 
 			// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
 
