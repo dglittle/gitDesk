@@ -307,6 +307,18 @@ _.run(function () {
 							+ "The GitHub issue body begins as follows:" + '\n\n'
 							+ issue.body.substring(0,200) + more
 
+		var post = 					{
+								buyer_team__reference : team,
+								category : 'Web Development',
+								subcategory : 'Web Programming',
+								title : title,
+								description : description,
+								budget : budget,
+								visibility : visibility,
+								job_type : 'fixed-price',
+								end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
+							}
+
 		var jobRef = _.p(o.post('hr/v2/jobs', {
 			buyer_team__reference : team,
 			category : 'Web Development',
@@ -364,7 +376,10 @@ _.run(function () {
 			var visibility
 			if (req.body.visibility) { visibility = 'public' }
 			else { visibility = 'private' }
+
 			var post = addbounty(issue, team, title, budget, visibility, req.session.odesk.id, req.session.github.id)
+			_.print('here is what the add bounty API returns:')
+			_.print(post)
 
 			res.render('confirmbounty.html', {
 				title: title,
@@ -561,23 +576,25 @@ function endJob(jobref, odeskuserid) {
 				throw new Error('issue not created by repository owner')
 			}
 
-			// look for markdown
+			// look for bounty in the issue body
 			var issueBody = req.body.issue.body
 			var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
 			_.print('bounty = ' + bounty)
 			if (bounty) {
-
 				var linkedrepo = _.p(db.collection("linkedrepos").findOne({
 					"githubuserid" : req.body.issue.user.login,
 					"repo" : req.body.repository.name }, _.p()))
 
-				var visibility = 'private'   // look for this next
+				// look for visibility
+				var visibility = 'private'
 				var v = issueBody.match(/(odesk\s*visibility\s*:\s*)(\w+)/i)[2]
 				_.print('visibility = ' + v)
 				if (v == 'private' || v == 'public') { visibility = v }
 
 				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid)
 			}
+
+			// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
 
 			// we're still adding hackhooks for now, even with no markdown
 			_.p(db.collection('hackhooks').insert({
@@ -699,7 +716,7 @@ function endJob(jobref, odeskuserid) {
 	}
 
 	function getCompanies(req) {
-		var teams = _.p(getO(req).get('hr/v2/teams', _.p())).teams
+		var teams = getTeams(req)
 		var companies = []
 
 		_.each(teams, function(team) {

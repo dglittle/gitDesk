@@ -70,7 +70,9 @@
 	    </label>
 	</div>
 
-    <input type="hidden" name="team" id="team" value="">
+	{% for t in teams %}
+	  {% if loop.first %}<input type="hidden" name="team" id="team" value="{{t.team__reference}}">{% endif %}
+	{% endfor %}
     <input type="hidden" name="githubissueurl" id="githubissueurl" value="">
 
 	<footer class="oFormFooter">
