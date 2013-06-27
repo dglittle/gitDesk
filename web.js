@@ -576,7 +576,7 @@ function endJob(jobref, odeskuserid) {
 				_.print('visibility = ' + v)
 				if (v == 'private' || v == 'public') { visibility = v }
 
-				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, githubuserid)
+				addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid)
 			}
 
 			// we're still adding hackhooks for now, even with no markdown
