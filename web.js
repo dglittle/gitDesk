@@ -288,6 +288,9 @@ _.run(function () {
 
 	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid) {
 		var o = getOByUserID(odeskuserid)
+		_.print('in add bounty')
+		_.print('arguments:')
+		_.print(arguments)
 
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
