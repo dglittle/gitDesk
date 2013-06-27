@@ -288,9 +288,6 @@ _.run(function () {
 
 	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid) {
 		var o = getOByUserID(odeskuserid)
-		_.print('in add bounty')
-		_.print('arguments:')
-		_.print(arguments)
 
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
@@ -322,7 +319,7 @@ _.run(function () {
 								job_type : 'fixed-price',
 								end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7)
 							}
-		if (false) {
+		if (true) {
 			var jobRef = _.p(o.post('hr/v2/jobs', {
 				buyer_team__reference : team,
 				category : 'Web Development',
