@@ -578,7 +578,7 @@ function endJob(jobref, odeskuserid) {
 			}
 
 			// if it's an open, add a job; if it's a close, close the job(?)
-			var action = req.body.issue.action
+			var action = req.body.action
 			_.print('action = ' + action)
 			if (action == 'opened') {
 				// look for bounty in the issue body
