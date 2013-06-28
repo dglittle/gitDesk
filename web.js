@@ -29,6 +29,9 @@ var cons = require('consolidate')
 var swig  = require('swig')
 var _ = require('gl519')
 var accounting = require('accounting')
+var toType = function(obj) {
+  return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
+}
 
 _.run(function () {
 
@@ -726,64 +729,21 @@ function endJob(jobref, odeskuserid) {
 		var t = _.p(getO(req).get('hr/v2/userroles', _.p())).userroles.userrole
 		var teams = []
 		_.each(t, function(t) {
-			var hm = false
 			var u = t.permissions.permission
-			_.each(u, function(u) { if (u == 'manage_employment') { u = true } })
-			if (u) { teams.push(t) }
+			var utype = toType(u)
+
+			if (utype == 'string') {
+				if (u == 'manage_employment') {
+					_.print(t.company__name + ' > ' + t.team__name + ': hiring manager!')
+					teams.push(t)
+				}
+			} else if (utype == 'array') {
+				_.each(u, function(u) { if (u == 'manage_employment') { teams.push(t) } })
+				_.print(t.company__name + ' > ' + t.team__name + ': hiring manager!')
+			} else {}
 		})
 		return teams
 	}
-
-	function getCompanies(req) {
-		var teams = getTeams(req)
-		var companies = []
-
-		_.each(teams, function(team) {
-			if (team.company__reference == team.team__reference) {
-				companies.push(team)
-			}
-		})
-		return companies
-	}
-	
-	function getCompanyByTeam(teams, team) {
-		var company
-
-		_.each(teams, function(t) {
-			if (t.reference == team) { company = t.company__reference }
-		})
-		return company
-	}
-
-
-	function getCompaniesAndTeams(req) {
-		var teams = _.p(getO(req).get('hr/v2/teams', _.p())).teams
-		var companies = []
-
-		_.each(teams, function(team) {
-			if (team.company__reference == team.reference) {
-				companies.push({
-					company: team.reference,
-					company_name: team.company_name
-				})
-			}
-		})
-
-		_.each(companies, function(company) {
-			company.teams = []
-			_.each(teams, function(team) {
-				if (team.company__reference == company.company) {
-					company.teams.push({
-						team: team.reference,
-						team_name: team.name
-					})
-				}				
-			})
-		})
-
-		return companies
-	}
-
 
     function getoDeskJobs(req) {
 	
@@ -797,6 +757,10 @@ function endJob(jobref, odeskuserid) {
 		// get all jobs the user has access to and put them in an array
 		_.each(teams, function(team) {
 			try {
+//				_.print('team = ' + team.company__name + ' > ' + team.team__name)
+				_.each(team.permissions.permission, function(p) {
+//					_.print('permissions = ' + p)
+				})
 				j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + team.team__reference + '&status=open&page=0;100', _.p())).jobs.job)
 			} catch (e) { _.print('oDesk API failed to get jobs') }
 		})
