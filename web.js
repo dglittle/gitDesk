@@ -326,7 +326,7 @@ _.run(function () {
 			// post the oDesk job!
 			var job = _.p(o.post('hr/v2/jobs', post, _.p())).job
 			_.print('the returned odesk job:')
-			-.print(job.reference)
+			_.print(job.reference)
 
 			// update the gitDesk issue
 			var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
@@ -609,12 +609,16 @@ function endJob(jobref, odeskuserid) {
 				// possibly close the job
 			}
 
+			var parsed = {
+				bounty : bounty,	
+				visibility : visibility,
+				skills: skills
+			}
+
 			// we're still adding hackhooks for now, even with no markdown
 			_.p(db.collection('hackhooks').insert({
 				body : req.body.issue,
-				parsed.bounty : bounty,
-				parsed.visibility : visibility,
-				parsed.skills: skills
+				parsed : parsed
 			}, _.p()))
 
 			res.send("ok")
