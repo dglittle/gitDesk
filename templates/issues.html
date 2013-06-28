@@ -7,8 +7,7 @@
 <div class="oLayout oLayoutDash">
   <div class="oMain">
 	<h2>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Jobs with linked issues</span></h2>
-
-	{% if jobs %}
+	{% if jobs|length > 0 %}
 		{% for job in jobs %}
 		<h1 class="oH5 oHInline">{{ job.title }}</h1><span class="oNull">
 			<a href="{{ job.github_url }}" style="color: inherit">{{ job.github_url }}</a></span></br>
@@ -17,8 +16,9 @@
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ job.odesk_url }}">view job on oDesk</a>
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="./api/canceljob?jobref={{job.opening}}&odeskuserid={{user.odeskuserid}}">Cancel this job opening</a></br></br>
 		{% endfor %}
-	{% else %}<i>No open bounties</i>{% endif %}
-
+	{% else %}
+		<p>You have no GitHub jobs. <a href="../addbounty">Add one now</a> or <a href="../repos">link a repo</a> and post jobs from within GitHub!</p>
+	{% endif %}
 	<a class="oBtn oBtnPrimary" href="../addbounty">Add Bounty</a>
 	</br></br></br></br>
 	<h2>Active Jobs&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Issues you have hired someone to resolve</span></h2>

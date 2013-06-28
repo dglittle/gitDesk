@@ -786,7 +786,6 @@ function endJob(jobref, odeskuserid) {
 
 		// get all jobs the user has access to and put them in an array
 		_.each(teams, function(team) {
-			_.print(teams)
 			try {
 				j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + team.team__reference + '&status=open&page=0;100', _.p())).jobs.job)
 			} catch (e) { _.print('oDesk API failed to get jobs') }

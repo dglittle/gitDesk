@@ -5,14 +5,13 @@
 {% block body %}
 
 <h1 class="oH1Huge">Welcome to gitDesk!</h1>
+<article class="oMsg oMsgInfo">
+gitDesk allows you to link GitHub issues to oDesk jobs, and even <strong>post an oDesk job automatically from within GitHub!</strong> First, link your oDesk and GitHub accounts:</article>
 {% if !user.odeskuserid %}
-	<p>Create an issue in GitHub, name a price, and an oDesk developer will resolve it for you!</p>
-	<a class="oBtn oBtnPrimary oBtnLarge" href="/auth/odesk">Get started by linking your oDesk account to gitDesk</a>
-{% else if !user.githubuserid %}
-	<p>Welcome, {{ user.odeskuserid }}!</p>
-	<a class="oBtn oBtnPrimary oBtnLarge" href="/auth/github">Now just link your GitHub account and you'll be ready</a>
+<a class="oBtn oBtnPrimary oBtnLarge" href="/auth/odesk">Link your oDesk account</a>
 {% else %}
-	<a href="/addissue">You're good to go!</a>
+<p>Welcome, {{user.odeskuserid}}! Only one more step:</p>
+<a class="oBtn oBtnPrimary oBtnLarge" href="/auth/github">Link your GitHub account</a>
 {% endif %}
 
 {% endblock body %}
