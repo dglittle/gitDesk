@@ -322,8 +322,11 @@ _.run(function () {
 							}
 		if (true) {
 
+			_.print('about to post the odesk job')
 			// post the oDesk job!
 			var job = _.p(o.post('hr/v2/jobs', post, _.p())).job
+			_.print('the returned odesk job:')
+			-.print(job.reference)
 
 			// update the gitDesk issue
 			var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
@@ -595,6 +598,7 @@ function endJob(jobref, odeskuserid) {
 						_.print('skills: ' + skills)
 					} catch (e) {}
 
+					_.print('about to add bounty')
 					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, skills)
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
@@ -607,8 +611,10 @@ function endJob(jobref, odeskuserid) {
 
 			// we're still adding hackhooks for now, even with no markdown
 			_.p(db.collection('hackhooks').insert({
-				body : req.body,
-				headers : req.headers
+				body : req.body.issue,
+				parsed.bounty : bounty,
+				parsed.visibility : visibility,
+				parsed.skills: skills
 			}, _.p()))
 
 			res.send("ok")
