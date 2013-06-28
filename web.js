@@ -577,6 +577,7 @@ function endJob(jobref, odeskuserid) {
 
 			// if it's an open, add a job; if it's a close, close the job(?)
 			var action = req.body.issue.action
+			_.print(action)
 			if (action == 'opened') {
 				// look for bounty in the issue body
 				try {
@@ -734,12 +735,10 @@ function endJob(jobref, odeskuserid) {
 
 			if (utype == 'string') {
 				if (u == 'manage_employment') {
-					_.print(t.company__name + ' > ' + t.team__name + ': hiring manager!')
 					teams.push(t)
 				}
 			} else if (utype == 'array') {
 				_.each(u, function(u) { if (u == 'manage_employment') { teams.push(t) } })
-				_.print(t.company__name + ' > ' + t.team__name + ': hiring manager!')
 			} else {}
 		})
 		return teams
