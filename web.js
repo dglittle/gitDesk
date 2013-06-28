@@ -564,7 +564,7 @@ function endJob(jobref, odeskuserid) {
 	app.all('/api/issue-hook', function (req, res) {
 		_.run(function () {
 
-			_.print(req.body.issue)
+			_.print(req.body)
 
 			// make sure the request is from github
 			hmac = require('crypto').createHmac('sha1', process.env.GITHUB_CLIENT_SECRET).update(req.rawBody).digest("hex")
@@ -579,6 +579,7 @@ function endJob(jobref, odeskuserid) {
 
 			// if it's an open, add a job; if it's a close, close the job(?)
 			var action = req.body.issue.action
+			_.print('action = ' + action)
 			if (action == 'opened') {
 				// look for bounty in the issue body
 				try {
