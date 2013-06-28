@@ -1,56 +1,62 @@
 {% extends 'base.html' %}
-
 {% block title %}gitDesk - Add Repo{% endblock %}
 
 {% block body %}
 
 <h1>Your GitHub Repos</h1>	
 
-	<article class="oMsg oMsgInfo">
-	Linking a GitHub repository in gitDesk allows you to <strong>post a job automatically from within GitHub!</strong>
-	Any time you create a new issue in a linked repo, all you have to do is add some markdown anywhere within the issue, and a job will be posted to oDesk automatically.</p>
-	<strong>Markdown options:</strong>
-	<ul><li>oDesk Bounty: $X.XX&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<span class="oSupportInfo">(required) If this line is present, a job will be posted. All other parameters are optional</span></li>
-		<li>(coming soon, required skills and custom job questions)</li>
-	</ul></br>
-	<a href="#gh_screenshot" data-toggle="modal">Here's how it looks in GitHub</a>
-	</article></br>
+<div class="oModeMessage" style="font-size: 15px;">
+<p>Linking a GitHub repository in gitDesk allows you to <strong>post a job automatically from within GitHub!</strong><p>
+<p><strong>Here's how it works:</strong></br>
+Step One: Link your repo to oDesk using the interface below</br>
+Step Two: Go to GitHub and create a new issue. Include "oDesk Bounty: $X.XX" at the bottom of the issue</br>
+Step Three: Wait a moment — oDesk is creating a job for you automatically! Reload the issue to see the link to the job on oDesk</p>
+<strong>Here is the markdown to include in your GitHub issue:</strong>
+<ul>
+	<li>oDesk Bounty: $X.XX (required)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+		<span class="oSupportInfo">If this line is present, a job will be posted. All other parameters are optional</span></li>
+	<li>oDesk Skills: skill1, skill2, skill3&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+		<span class="oSupportInfo">Separate each skill with a comma; only skills in the oDesk skills dictionary will be processed</span></li>
+</ul>
+</br>
+<a href="#gh_screenshot" data-toggle="modal">Here's how it looks in GitHub</a>
+</div>
+</br>
+
+<div style="width: 750px;">
 <table class="table table-striped table-hover">
 	<tr>
-		<th>Repo Name</th>
-		<th>Status</th>
+		<th>GitHub Repository</th>
+		<th>oDesk Status</th>
 	</tr>
 	{% for r in repos %}
 	<tr>
-		<td><a href="{{r.html_url}}">{{r.name}}</a></td>
-		<td>{% if r.is_linked %}
-			Linked to {{r.team_name}}&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.name}}" ><small>unlink</small></a>
-			{% else %}
-			Not Linked&nbsp;&nbsp;
-			{% if teams|length > 1 %}
-				<div class="dropdown" style="display: inline;">
-					<a class="dropdown-toggle" data-toggle="dropdown" href="#"><small>link repo</small></a>
-					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" style="width: 300px;">
+		<td>{{r.name}}</td>
+		<td>
+			<div class="dropdown" style="display: inline;">
+				<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+					{% if r.is_linked %}Linked to {{r.team_name}}{% else %}Not Linked{% endif%}</a>&nbsp;&nbsp;
+				<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="width: 300px; padding: 5px;">
+					{% if r.is_linked %}
+						<li><small><a href="./api/unlinkrepo?repo={{r.name}}">Unlink Repo</a></small></li>
+					{% else %}
+						<li><small><strong>Link Repo to Team:</strong></small></li>
 						{% for t in teams %}
-							<li><small><a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}" >
-								{{t.company__name}}&nbsp;&gt;&nbsp;{{t.team__name}}</a></small></li>
+						<li><small><a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}">
+							{{t.company__name}}&nbsp;&gt;&nbsp;{{t.team__name}}</a></small></li>
 						{% endfor %}
-					</ul>
-				</div>
-			{% else %}
-				{% for t in teams %}
-				<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}"><small>link repo</small></a>
-				{% endfor %}
-			{% endif %}
-			{% endif %}
+					{% endif %}
+					<li class="oNull">------------</li>
+					<li><small><a href="{{r.html_url}}">Go to GitHub Repo</a></small></li>
+				</ul>
+			</div>
 		</td>
 	</tr>
 	{% endfor %}
-</table>
+</div>
 
 <div class="modal hide fade" id="gh_screenshot" style="width: 900px; margin-left: -452px; margin-top: 100px; max-height: 800px;">
   <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
     <h1>Here is how you post a job from within GitHub</h1>
   </div>
   <div class="modal-body">
@@ -63,6 +69,3 @@
 
 
 {% endblock body%}
-
-
-<input type="hidden" name="team" id="team" value="">

@@ -291,7 +291,7 @@ _.run(function () {
 
 	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid, skills) {
 		var o = getOByUserID(odeskuserid)
-		_.print(arguments)
+		// _.print(arguments)
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
 	        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
@@ -326,7 +326,7 @@ _.run(function () {
 		if (true) {
 
 			_.print('about to post the odesk job')
-			// post the oDesk job!
+			_.print(post)
 			var job = _.p(o.post('hr/v2/jobs', post, _.p())).job
 			_.print('the returned odesk job:')
 			_.print(job.reference)
@@ -370,12 +370,13 @@ _.run(function () {
 			var team = req.body.team
 			var title = req.body.title
 			var budget = req.body.price
+			var skills = validateSkills(req.body.skills)
 
 			var visibility
 			if (req.body.visibility) { visibility = 'public' }
 			else { visibility = 'private' }
 
-			var post = addbounty(issue, team, title, budget, visibility, req.session.odesk.id, req.session.github.id)
+			var post = addbounty(issue, team, title, budget, visibility, req.session.odesk.id, req.session.github.id, skills)
 			_.print('here is what the add bounty API returns:')
 			_.print(post)
 
@@ -504,6 +505,13 @@ function endJob(jobref, odeskuserid) {
 		})
 	})
 
+	function validateSkills(skills) {
+		var skill_array = skills.split(/\s*,\s*/i)
+		skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
+		skills = skill_array.join(';')
+		_.print('skills: ' + skills)
+		return skills
+	}
 
 // ------- ------- ------- ------- API FUNCTIONS ------- ------- ------- -------
 
@@ -564,8 +572,6 @@ function endJob(jobref, odeskuserid) {
 	app.all('/api/issue-hook', function (req, res) {
 		_.run(function () {
 
-			_.print(req.body)
-
 			// make sure the request is from github
 			hmac = require('crypto').createHmac('sha1', process.env.GITHUB_CLIENT_SECRET).update(req.rawBody).digest("hex")
 			if (hmac != req.headers['x-hub-signature'].split(/=/)[1]) {
@@ -579,7 +585,6 @@ function endJob(jobref, odeskuserid) {
 
 			// if it's an open, add a job; if it's a close, close the job(?)
 			var action = req.body.action
-			_.print('action = ' + action)
 			if (action == 'opened') {
 				// look for bounty in the issue body
 				try {
@@ -598,10 +603,8 @@ function endJob(jobref, odeskuserid) {
 					// look for skills
 					var skills = ''   // this will be a string of comma-separated skills
 					try {
-						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2].split(/\s*,\s*/i)
-						skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
-						skills = skill_array.join(';')
-						_.print('skills: ' + skills)
+						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2]
+						skills = validateSkills(skill_array)
 					} catch (e) {}
 
 					_.print('about to add bounty')

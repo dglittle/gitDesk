@@ -24,8 +24,11 @@
 		{% for r in repos %}
 		  <option>{{r.name}}</option>
 		{% endfor %}
-	  </select>&nbsp;&nbsp;&nbsp;
-	  <select id="selectissue" name="selectissue" class="oFormMed valid" style="display: none;"></select>
+	  </select>
+	</div>
+	<div class="oFormField" id="selectissuediv" style="display: none;">
+	  <label class="oLabel">Select Issue</label>
+	  <select id="selectissue" name="selectissue" class="oFormMed valid"></select>
 	</div>
 
 	<input type="hidden" name="issuenum" id="issuenum" value="">
@@ -42,9 +45,9 @@
 	</div>
 
 	<div class="oFormField">
-	    <label class="oLabel" for="skills">Language / Technology</label>
+	    <label class="oLabel" for="skills">Skills Required</br>(e.g. language)</label>
 	    <input type="text" name="skills" id="skills" class="oInputText oFormLrg" value="">
-	    <span class="oHint">Examples: python, javascript  // note: use the oDesk skills auto-suggest widget?</span>
+	    <span class="oHint">Examples: python, javascript (separate each skill with a comma)</span>
 	</div>
 
 	<div class="oFormField">
@@ -90,7 +93,7 @@ $(function() {
 	$('#repo').change(function() {
 		$.get('/api/getissuesbyrepo?repo='+$(this).val(), function(issues){
 			// alert('blah: '+JSON.stringify(issues))
-			document.getElementById('selectissue').style.display = 'inline'
+			document.getElementById('selectissuediv').style.display = 'inline'
 			var issues_select = $('#selectissue')
 			var title = $('<option/>').text('Select Issue:')
 			issues_select.append(title)
