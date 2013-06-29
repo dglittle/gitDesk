@@ -1,0 +1,104 @@
+<a href="./api/unlinkrepo?repo={{r.name}}">
+
+{% if r.is_linked %}
+	<span style="font-size: 12px;">
+	(linked to {{r.team_name}})&nbsp;
+	<a class="btn btn-mini" href="./api/unlinkrepo?repo={{r.name}}">unlink</a>&nbsp;&nbsp;
+{% else %}
+	{% if teams|length > 1 %}
+		<span style="font-size: 12px;">
+
+		</span>
+	{% else %}
+		<span style="font-size: 12px;">
+		{% for t in teams %}
+		<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}">link repo</a>
+		{% endfor %}
+		</span>
+	{% endif %}
+{% endif %}
+	<span style="font-size: 12px;"><a href="{{r.html_url}}">view on GitHub</span></a></br>
+
+
+
+
+
+	{% endif %}
+	</td>
+
+<table class="table table-striped table-hover">
+	<tr>
+		<th>Repo Name</th>
+		<th>Status</th>
+	</tr>
+	{% for r in repos %}
+	<tr>
+		<td><a href="{{r.html_url}}">{{r.name}}</a></td>
+		<td>{% if r.is_linked %}
+			Linked to {{r.team_name}}&nbsp;&nbsp;<a href="./api/unlinkrepo?repo={{r.name}}" ><small>unlink</small></a>
+			{% else %}
+			Not Linked&nbsp;&nbsp;
+			{% if teams|length > 1 %}
+				<div class="dropdown" style="display: inline;">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#"><small>link repo</small></a>
+					<ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" style="width: 300px;">
+						{% for t in teams %}
+							<li><small><a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}">
+								{{t.company__name}}&nbsp;&gt;&nbsp;{{t.team__name}}</a></small></li>
+						{% endfor %}
+					</ul>
+				</div>
+			{% else %}
+				{% for t in teams %}
+				<a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}"><small>link repo</small></a>
+				{% endfor %}
+			{% endif %}
+			{% endif %}
+		</td>
+	</tr>
+	{% endfor %}
+</table>-->
+
+
+<div id="repos" style="font-size: 16px;">
+{% for r in repos %}
+<div class="dropdown" style="display: inline;">
+	<a class="dropdown-toggle" data-toggle="dropdown" href="#"><strong>{{r.name}}</strong></a>&nbsp;&nbsp;
+	<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu" style="width: 300px;">
+		{% if r.is_linked %}
+			<li><small><a href="./api/unlinkrepo?repo={{r.name}}">Unlink Repo</a></small></li>
+		{% else %}
+			<li><small>Link Repo to Team:</small></li>
+			{% for t in teams %}
+				<li><small><a href="./api/linkrepo?repo={{r.name}}&githubuserid={{githubuserid}}&team={{t.team__reference}}">
+					{{t.company__name}}&nbsp;&gt;&nbsp;{{t.team__name}}</a></small></li>
+			{% endfor %}
+		{% endif %}
+		<li class="divider"><hr></li>
+		<li><small><a href="{{r.html_url}}">Go to GitHub Repo</a></small></li>
+	</ul>
+</div>
+{% if r.is_linked %}(linked to {{r.team_name}}){% else %}not linked{% endif %}
+</br>
+{% endfor %}
+</div>
+
+
+<aside class="oSide">
+	<h2>Linked Repos&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{% if repos|length > 0 %}<a class="oBtn oBtnPrimary" href="../repos">Manage Repos</a>{% endif %}</h2>
+	{% if repos|length > 0 %}
+	You have {{repos|length}} linked repo{% if repos|length > 1 %}s{% endif %}:
+	<ul class="oStretchList">
+		{% for repo in repos %}<li><a href="{{repo.html_url}}">/{{repo.repo}}</li>{% endfor %}
+	</ul></br>
+	<a class="oBtn oBtnPrimary" href="../repos">Manage Linked Repos</a>
+	{% else %}
+	<p>Post jobs automatically from within GitHub by linking a repo to gitDesk!</p>
+	{% if repos|length == 0 %}<a class="oBtn oBtnPrimary" href="../repos">Link a Repo to gitDesk</a>{% endif %}
+	{% endif %}
+</aside>
+
+
+
+<ul class="oStretchList">{% for repo in repos %}<li><a href="{{repo.html_url}}">/{{repo.repo}}</li>{% endfor %}</ul></br>
+<a class="oBtn oBtnPrimary" href="../repos">Manage Linked Repos</a>

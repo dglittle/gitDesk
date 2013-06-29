@@ -206,6 +206,7 @@ _.run(function () {
 			var jobs = getoDeskJobs(req)
 			var contracts = getoDeskContracts(req)
 			var repos = getLinkedRepos(req.session.github.id)
+			_.print(repos)
 			res.render('issues.html', {
 				jobs: jobs,
 				contracts: contracts,

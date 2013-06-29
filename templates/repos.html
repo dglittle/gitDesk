@@ -21,8 +21,7 @@ Step Three: Wait a moment — oDesk is creating a job for you automatically! Rel
 </br>
 <a href="#gh_screenshot" data-toggle="modal">Here's how it looks in GitHub</a>
 </div>
-</br>
-
+<p><a href="../issues" style="font-size: 14px;"><strong>&lt;&lt;&nbsp;&nbsp;Back to Dashboard</strong></a></p>
 <div style="width: 750px;">
 <table class="table table-striped table-hover">
 	<tr>
@@ -31,7 +30,7 @@ Step Three: Wait a moment — oDesk is creating a job for you automatically! Rel
 	</tr>
 	{% for r in repos %}
 	<tr>
-		<td>{{r.name}}</td>
+		<td>{% if r.is_linked %}<i class="icon-check"></i>&nbsp;{% endif %}{{r.name}}</td>
 		<td>
 			<div class="dropdown" style="display: inline;">
 				<a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -47,7 +46,7 @@ Step Three: Wait a moment — oDesk is creating a job for you automatically! Rel
 						{% endfor %}
 					{% endif %}
 					<li class="oNull">------------</li>
-					<li><small><a href="{{r.html_url}}">Go to GitHub Repo</a></small></li>
+					<li><small><a href="{{r.html_url}}/issues">Go to GitHub Repo</a></small></li>
 				</ul>
 			</div>
 		</td>

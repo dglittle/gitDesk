@@ -4,9 +4,24 @@
 
 {% block body %}
 
-<div class="oLayout oLayoutDash">
-  <div class="oMain">
-	<h2>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Jobs with linked issues</span></h2>
+<div class="oLayout">
+	<h2>Linked Repos&nbsp;&nbsp;
+		<span style="font-size: 0.7em;font-family:sans-serif;">Post jobs automatically from within GitHub!</span>
+	</h2>
+	
+	{% if repos|length > 0 %}
+	You have {{repos|length}} linked repo{% if repos|length > 1 %}s{% endif %}:
+	<ul class="oStretchList">
+	{% for repo in repos %}<li><strong><a href="../repos">/{{repo.repo}}</strong>&nbsp;&nbsp;<small><a target="_blank" href="{{repo.html_url}}">view on GitHub</a></small></li>{% endfor %}
+	</ul></br>
+	<a class="oBtn oBtnPrimary" href="../repos">Manage Linked Repos</a>
+	{% else %}
+	<p>You have no linked repositories.</p>
+	<a class="oBtn oBtnPrimary" href="../repos">Link a GitHub Repository to gitDesk</a>
+	{% endif %}	
+	</br></br></br></br>
+
+	<h2>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Jobs with linked GitHub issues</span></h2>
 	{% if jobs|length > 0 %}
 		{% for job in jobs %}
 		<h1 class="oH5 oHInline">{{ job.title }}</h1><span class="oNull">
@@ -19,8 +34,9 @@
 	{% else %}
 		<p>You have no GitHub jobs. <a href="../addbounty">Add one now</a> or <a href="../repos">link a repo</a> and post jobs from within GitHub!</p>
 	{% endif %}
-	<a class="oBtn oBtnPrimary" href="../addbounty">Add Bounty</a>
+	<a class="oBtn oBtnPrimary" href="../addbounty">Post Bounty to Existing GitHub Issue</a>
 	</br></br></br></br>
+
 	<h2>Active Jobs&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Issues you have hired someone to resolve</span></h2>
 	{% if contracts %}
 		{% for contract in contracts %}
@@ -30,21 +46,6 @@
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#closeModal{{loop.index}}" data-toggle="modal" id="close1">Close and Pay</a></br></br>
 		{% endfor %}
   	{% else %}<i>No active jobs</i>{% endif %}
-  </div> <!-- end of "main" dashboard section -->
-
-  <aside class="oSide">
-	<h2>Linked Repos</h2>
-	{% if repos|length > 0 %}
-	You have {{repos|length}} linked repo{% if repos|length > 1 %}s{% endif %}:
-	<ul class="oStretchList">
-		{% for repo in repos %}<li><a href="{{repo.html_url}}">/{{repo.repo}}</li>{% endfor %}
-	</ul></br>
-	<a class="oBtn oBtnPrimary" href="../repos">Manage Linked Repos</a>
-	{% else %}
-	<p>Post jobs automatically from within GitHub by linking a repo to gitDesk!</p>
-	<a class="oBtn oBtnPrimary" href="../repos">Link a Repo to gitDesk</a>
-	{% endif %}
-  </aside>
 
 {% if contracts %}
 	{% for contract in contracts %}
