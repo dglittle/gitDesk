@@ -584,28 +584,34 @@ function endJob(jobref, odeskuserid) {
 				throw new Error('issue not created by repository owner')
 			}
 
+			var markdown = {
+				visibility : 'private',
+				bounty : '',
+				skills: ''
+			}
+
 			// if it's an open, add a job; if it's a close, close the job(?)
 			var action = req.body.action
 			if (action == 'opened') {
-				// look for bounty in the issue body
 				try {
-					var issueBody = req.body.issue.body			
-					var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2]
-					_.print('bounty = ' + bounty)
+
+					var issueBody = req.body.issue.body	
 					var linkedrepo = _.p(db.collection("linkedrepos").findOne({
 						"githubuserid" : req.body.issue.user.login,
 						"repo" : req.body.repository.name
 					}, _.p()))
 
-					// look for visibility
-					var visibility = 'private'
-					try { visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
+					// look for bounty in the markdown
+					try { markdown.bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2] } catch (e) {}
+					_.print('bounty = ' + markdown.bounty)
 
-					// look for skills
-					var skills = ''   // this will be a string of comma-separated skills
+					// look for visibility in the markdown
+					try { markdown.visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
+
+					// look for skills in the markdown
 					try {
 						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2]
-						skills = validateSkills(skill_array)
+						markdown.skills = validateSkills(skill_array)
 					} catch (e) {}
 
 					_.print('about to add bounty')
@@ -619,16 +625,10 @@ function endJob(jobref, odeskuserid) {
 				// possibly close the job
 			}
 
-			var parsed = {
-				bounty : bounty,	
-				visibility : visibility,
-				skills: skills
-			}
-
 			// we're still adding hackhooks for now, even with no markdown
 			_.p(db.collection('hackhooks').insert({
 				body : req.body.issue,
-				parsed : parsed
+				parsed : markdown
 			}, _.p()))
 
 			res.send("ok")
