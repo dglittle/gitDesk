@@ -614,25 +614,25 @@ function endJob(jobref, odeskuserid) {
 					try {
 						var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)
 						markdown.bounty = bounty[2]
+						_.print('bounty regex match = ' + bounty[0])
+						_.print('bounty = ' + markdown.bounty)
 					} catch (e) {}
-					_.print('bounty regex match = ' + bounty[0])
-					_.print('bounty = ' + markdown.bounty)
 
 					// look for visibility in the markdown
 					try { 
 						var visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)
 						markdown.visibility = visibility[2]
+						_.print('visibility regex match = ' + visibility[0])
+						_.print('visibility = ' + markdown.visibility)
 					} catch (e) {}
-					_.print('visibility regex match = ' + visibility[0])
-					_.print('visibility = ' + markdown.visibility)
 
 					// look for skills in the markdown
 					try {
 						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)
 						markdown.skills = validateSkills(skill_array[2])
+						_.print('skills regex match = ' + skill_array[0])
+						_.print('skills = ' + markdown.skills)
 					} catch (e) {}
-					_.print('skills regex match = ' + skill_array[0])
-					_.print('skills = ' + markdown.skills)
 
 					_.print('about to add bounty')
 					
