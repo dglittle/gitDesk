@@ -231,6 +231,19 @@ _.run(function () {
 		})
 	})
 
+	function updateIssue(issue, body) {
+		_.print('in updateIssue now')
+		_.print(issue)
+		_.print(body)
+		// update the gitDesk issue
+		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + issue.user.login }, _.p()))
+		u = issue.url + '?access_token=' + g.accessToken
+		var s = _.wget('PATCH', u, _.json({
+			body : 	body
+		}))
+		
+	}
+
 	// Manage Repos
     app.get('/repos', requirelogin, function (req, res) {
 		_.run(function(){
@@ -327,23 +340,18 @@ _.run(function () {
 		if (true) {
 
 			_.print('about to post the odesk job')
-			_.print(post)
 			var job = _.p(o.post('hr/v2/jobs', post, _.p())).job
 			_.print('the returned odesk job:')
 			_.print(job.reference)
 
 			// update the gitDesk issue
-			var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p()))
-			u = issue.url + '?access_token=' + g.accessToken
-			issue.body = issue.body.replace()
-
-			var s = _.wget('PATCH', u, _.json({
-	            body : 	"********************************************" + '\n' +
+			var issueBody = "********************************************" + '\n' +
 						"I'm offering $" + (1*budget).toFixed(2) + " on oDesk for someone to do this task: "
 						+ job.public_url + '\n'
 						+ "********************************************" + '\n\n'
 						+ issue.body
-			}))
+						
+			updateIssue(issue, issueBody)
 
 			var post = {
 				odesk: {
@@ -606,7 +614,7 @@ function endJob(jobref, odeskuserid) {
 						var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)
 						markdown.bounty = bounty[2]
 					} catch (e) {}
-					_.print('bounty regex match = ' + bounty)
+					_.print('bounty regex match = ' + bounty[0])
 					_.print('bounty = ' + markdown.bounty)
 
 					// look for visibility in the markdown
@@ -614,16 +622,15 @@ function endJob(jobref, odeskuserid) {
 						var visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)
 						markdown.visibility = visibility[2]
 					} catch (e) {}
-					_.print('visibility regex match = ' + visibility)
+					_.print('visibility regex match = ' + visibility[0])
 					_.print('visibility = ' + markdown.visibility)
 
 					// look for skills in the markdown
 					try {
 						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)
-						var skills = validateSkills(skill_array)
-						markdown.skills = skills[2]
+						markdown.skills = validateSkills(skill_array[2])
 					} catch (e) {}
-					_.print('skills regex match = ' + skills)
+					_.print('skills regex match = ' + skill_array[0])
 					_.print('skills = ' + markdown.skills)
 
 					_.print('about to add bounty')
@@ -632,7 +639,12 @@ function endJob(jobref, odeskuserid) {
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
 				// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
-				issueBody = issueBody.replace(markdown.bounty)
+				issueBody = issueBody.replace(bounty[0],'')
+				issueBody = issueBody.replace(visibility[0],'')
+				issueBody = issueBody.replace(skill_array[0],'')
+				_.print('the new body with markdown removed is: ')
+				_.print(issueBody)
+				updateIssue(req.body.issue, issueBody)
 
 			} else if (action == 'closed') {
 				// possibly close the job
