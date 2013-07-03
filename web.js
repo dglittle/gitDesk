@@ -647,8 +647,6 @@ function endJob(jobref, odeskuserid) {
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
-				updateIssue(req.body.issue, issueBody)
-
 			} else if (action == 'closed') {
 				// possibly close the job
 				_.print("this issue was closed. doing nothing for now.")
