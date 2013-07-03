@@ -233,7 +233,7 @@ _.run(function () {
 
 	function updateIssue(issue, body) {
 		_.print('in updateIssue now')
-		_.print(issue)
+		_.print('updateIssue body:')
 		_.print(body)
 		// update the gitDesk issue
 		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + issue.user.login }, _.p()))
@@ -303,27 +303,27 @@ _.run(function () {
 
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
-	function addbounty(issue, team, title, budget, visibility, odeskuserid, githubuserid, skills) {
+	function addbounty(issue, team, title, budget, description, visibility, odeskuserid, githubuserid, skills) {
 		var o = getOByUserID(odeskuserid)
-		// _.print(arguments)
+		_.print(arguments)
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
 	        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
 	        return zeroPrefix(d.getMonth() + 1) + "-" + zeroPrefix(d.getDate()) + "-" + d.getFullYear()
 	    }
 
-		if (issue.body.length > 200) {
-			var more = "... "
-			} else var more = ""
+		var body = description
+		description.length > 300 ? description = description.substring(0,300) + '...' : description = description
+		_.print(description)
 
-		var description =	"Resolve the following GitHub issue:" + '\n\n'
+		description =		"Resolve the following GitHub issue:" + '\n\n'
 							+ issue.html_url + '\n\n'
 							+ "To apply, please answer the following questions:" + '\n'
 							+ "1) What is your GitHub ID?" + '\n'
 							+ "2) How long do you think it will take you to resolve this issue?" + '\n\n\n'
 							+ "********************************************" + '\n'
 							+ "The GitHub issue body begins as follows:" + '\n\n'
-							+ issue.body.substring(0,200) + more
+							+ description
 
 		var post = 			{
 								buyer_team__reference : team,
@@ -349,7 +349,7 @@ _.run(function () {
 						"I'm offering $" + (1*budget).toFixed(2) + " on oDesk for someone to do this task: "
 						+ job.public_url + '\n'
 						+ "********************************************" + '\n\n'
-						+ issue.body
+						+ body
 						
 			updateIssue(issue, issueBody)
 
@@ -380,18 +380,19 @@ _.run(function () {
 			var title = req.body.title
 			var budget = req.body.price
 			var skills = validateSkills(req.body.skills)
+			var description = req.body.description
 
 			var visibility
 			if (req.body.visibility) { visibility = 'public' }
 			else { visibility = 'private' }
 
-			var post = addbounty(issue, team, title, budget, visibility, req.session.odesk.id, req.session.github.id, skills)
+			var post = addbounty(issue, team, title, budget, description, visibility, req.session.odesk.id, req.session.github.id, skills)
 			_.print('here is what the add bounty API returns:')
 			_.print(post)
 
 			res.render('confirmbounty.html', {
 				title: title,
-				description: req.body.description,
+				description: description,
 				team: team,
 				joburl: post.odesk.job_url,
 				budget: budget
@@ -634,16 +635,18 @@ function endJob(jobref, odeskuserid) {
 					_.print('skills = ' + markdown.skills)
 
 					_.print('about to add bounty')
-					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, markdown.bounty, markdown.visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, markdown.skills)
+					
+					// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
+					issueBody = issueBody.replace(bounty[0],'')
+					issueBody = issueBody.replace(visibility[0],'')
+					issueBody = issueBody.replace(skill_array[0],'')
+					_.print('the new body with markdown removed is: ')
+					_.print(issueBody)
+					
+					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, markdown.bounty, issueBody, markdown.visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, markdown.skills)
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
-				// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
-				issueBody = issueBody.replace(bounty[0],'')
-				issueBody = issueBody.replace(visibility[0],'')
-				issueBody = issueBody.replace(skill_array[0],'')
-				_.print('the new body with markdown removed is: ')
-				_.print(issueBody)
 				updateIssue(req.body.issue, issueBody)
 
 			} else if (action == 'closed') {
