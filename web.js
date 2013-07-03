@@ -637,9 +637,9 @@ function endJob(jobref, odeskuserid) {
 					_.print('about to add bounty')
 					
 					// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
-					issueBody = issueBody.replace(bounty[0],'')
-					issueBody = issueBody.replace(visibility[0],'')
-					issueBody = issueBody.replace(skill_array[0],'')
+					if (bounty) { issueBody = issueBody.replace(bounty[0],'') }
+					if (visibility) { issueBody = issueBody.replace(visibility[0],'') }
+					if (skill_array) { issueBody = issueBody.replace(skill_array[0],'') }
 					_.print('the new body with markdown removed is: ')
 					_.print(issueBody)
 					
