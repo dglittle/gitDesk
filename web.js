@@ -602,17 +602,29 @@ function endJob(jobref, odeskuserid) {
 					}, _.p()))
 
 					// look for bounty in the markdown
-					try { markdown.bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)[2] } catch (e) {}
+					try {
+						var bounty = issueBody.match(/(odesk bounty:\s*\$?)(\d+(\.\d+)?)/i)
+						markdown.bounty = bounty[2]
+					} catch (e) {}
+					_.print('bounty regex match = ' + bounty)
 					_.print('bounty = ' + markdown.bounty)
 
 					// look for visibility in the markdown
-					try { markdown.visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)[2] } catch (e) {}
+					try { 
+						var visibility = issueBody.match(/(odesk\s*visibility\s*:\s*)(private|public)/i)
+						markdown.visibility = visibility[2]
+					} catch (e) {}
+					_.print('visibility regex match = ' + visibility)
+					_.print('visibility = ' + markdown.visibility)
 
 					// look for skills in the markdown
 					try {
-						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)[2]
-						markdown.skills = validateSkills(skill_array)
+						var skill_array = issueBody.match(/(odesk\s*skills?\s*:\s*)(.*)/i)
+						var skills = validateSkills(skill_array)
+						markdown.skills = skills[2]
 					} catch (e) {}
+					_.print('skills regex match = ' + skills)
+					_.print('skills = ' + markdown.skills)
 
 					_.print('about to add bounty')
 					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, markdown.bounty, markdown.visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, markdown.skills)
@@ -620,9 +632,11 @@ function endJob(jobref, odeskuserid) {
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
 				// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
+				issueBody = issueBody.replace(markdown.bounty)
 
 			} else if (action == 'closed') {
 				// possibly close the job
+				_.print("this issue was closed. doing nothing for now.")
 			}
 
 			// we're still adding hackhooks for now, even with no markdown
