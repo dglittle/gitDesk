@@ -615,7 +615,7 @@ function endJob(jobref, odeskuserid) {
 					} catch (e) {}
 
 					_.print('about to add bounty')
-					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, bounty, visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, skills)
+					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, markdown.bounty, markdown.visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, markdown.skills)
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
