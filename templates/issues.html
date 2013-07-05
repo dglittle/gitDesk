@@ -74,12 +74,20 @@
 			        </label>
 			    </div>
 			</fieldset>
+<p>Would you like us to close the issue on GitHub as well?</p>
+			<div class="oFormField">
+			  <label class="oOpt oOptSub oOptLbl">
+				<input type="checkbox" name="closeissue" checked>Yes, close the GitHub issue
+			  </label>
+			</div>
 		   	<button class="oBtn oBtnPrimary" type="submit" value-"submit" >Submit</button>&nbsp;
 		 		<a class="oBtn oBtnCancel" data-dismiss="modal">Cancel</a></br></br>
 			<span class="oSupportInfo">Your credit card will be charged for any payment you submit at the end of the day.</span>
 		<input type="hidden" name="contract" id="contract" value="{{contract.recno}}">
 		<input type="hidden" name="bounty" id="bounty" value="{{contract.amount}}">
 		<input type="hidden" name="team" id="team" value="{{contract.team}}">
+		<input type="hidden" name="issue_url" id="issue_url" value="{{contract.issue_url}}">
+		<input type="hidden" name="jobref" id="jobref" value="{{contract.jobref}}">
 	    </form>
 	  </div>
 

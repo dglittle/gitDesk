@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}gitDesk - Resolve GitHub Issues On oDesk{% endblock %}
+
+{% block body %}
+
+<div class="oModeMessage" style="font-size: 15px;">
+<p>Linking a GitHub repository in gitDesk allows you to <strong>post a job automatically from within GitHub!</strong><p>
+<p><strong>Here's how it works:</strong></br>
+Step One: Link your repo to oDesk using the interface below</br>
+Step Two: Go to GitHub and create a new issue. Include "oDesk Bounty: $X.XX" at the bottom of the issue</br>
+Step Three: Wait a moment — oDesk is creating a job for you automatically! Reload the issue to see the link to the job on oDesk</p>
+<strong>Here is the markdown to include in your GitHub issue:</strong>
+<ul>
+	<li>oDesk Bounty: $X.XX (required)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+		<span class="oSupportInfo">If this line is present, a job will be posted. All other parameters are optional</span></li>
+	<li>oDesk Skills: skill1, skill2, skill3&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+		<span class="oSupportInfo">Separate each skill with a comma; only skills in the oDesk skills dictionary will be processed</span></li>
+</ul>
+</br>
+<a href="#gh_screenshot" data-toggle="modal">Here's how it looks in GitHub</a>
+</div>
+
+{% endblock %}
+
+<script>
+
+$(function() {
+
+	$('#closeModal').on('show', function () {
+	  print('the modal fired!')
+	})
+
+</script>

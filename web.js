@@ -206,7 +206,7 @@ _.run(function () {
 			var jobs = getoDeskJobs(req)
 			var contracts = getoDeskContracts(req)
 			var repos = getLinkedRepos(req.session.github.id)
-			_.print(repos)
+			_.print(contracts)
 			res.render('issues.html', {
 				jobs: jobs,
 				contracts: contracts,
@@ -232,16 +232,40 @@ _.run(function () {
 	})
 
 	function updateIssue(issue, body) {
-		_.print('in updateIssue now')
-		_.print('updateIssue body:')
-		_.print(body)
-		// update the gitDesk issue
+		_.print('updating issue body')
+
+		// update the GitHub issue
 		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + issue.user.login }, _.p()))
 		u = issue.url + '?access_token=' + g.accessToken
 		var s = _.wget('PATCH', u, _.json({
 			body : 	body
-		}))
-		
+		}))		
+	}
+
+	function closeIssue(issue, close) {
+		_.print('in closeIssue now')
+
+		// get GitHub token
+		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + issue.user.login }, _.p()))
+		var u = issue.url + '?access_token=' + g.accessToken		
+
+		// get oDesk job URL
+		var joburl = _.p(getOByUserID(issue.odeskuserid).get('hr/v2/jobs/' + issue.jobref + '.json', _.p())).job.public_url
+		_.print(joburl)
+
+		// construct message to prepend to the GitHub issue
+		var prepend = issue.body.match(/\*{3}[\n\r]*.+[\n\r]*\*{3}/)
+		var newprepend = 	 	"***" + '\n' +
+								"This issue was [done on oDesk](" + joburl + ")! Learn how to [link your repo to oDesk](http://warm-everglades-8745.herokuapp.com/about) and get your issues resolved fast." + '\n'
+								+ "***"
+		issue.body = issue.body.replace(prepend, newprepend)
+
+		// update the issue
+		var update = {}
+		update.body = issue.body
+		if (close) { update.state = 'closed' }
+
+		var s = _.wget('PATCH', u, _.json(update))
 	}
 
 	// Manage Repos
@@ -288,6 +312,13 @@ _.run(function () {
 				team: "" , // req.body.team,
 				joburl: "http://www.google.com" // job.public_url
 			})
+		})
+	})
+
+	// Learn More
+    app.get('/about', function (req, res) {
+		_.run(function(){
+			res.render('about.html', {})
 		})
 	})
 
@@ -345,10 +376,9 @@ _.run(function () {
 			_.print(job.reference)
 
 			// update the gitDesk issue
-			var issueBody = "********************************************" + '\n' +
-						"I'm offering $" + (1*budget).toFixed(2) + " on oDesk for someone to do this task: "
-						+ job.public_url + '\n'
-						+ "********************************************" + '\n\n'
+			var issueBody = "***" + '\n' +
+						"I'm offering [$" + (1*budget).toFixed(2) + " on oDesk]("+ job.public_url +") for someone to do this task. Learn how to [get your issues resolved on oDesk](http://warm-everglades-8745.herokuapp.com/about).\n"
+						+ "***" + '\n\n'
 						+ body
 						
 			updateIssue(issue, issueBody)
@@ -405,10 +435,10 @@ _.run(function () {
 		_.run(function(){
 
 			var o = getO(req)
-			var option = req.body.radiogroup
+			var pay_option = req.body.radiogroup
 			var amount = 0
-			if(option == 'closeandpaycustom') { amount = req.body.amount }
-			if(option == 'closeandpay') { amount = req.body.bounty }
+			if(pay_option == 'closeandpaycustom') { amount = req.body.amount }
+			if(pay_option == 'closeandpay') { amount = req.body.bounty }
 			var comment = 'Payment for resolving a GitHub issue via gitDesk'
 
 			// try to pay
@@ -424,44 +454,45 @@ _.run(function () {
 				_.print(paymentRef)
 			} // end if
 
-			// close the job
-
-			// endContract(req.body.contract, req.session.odesk.id)
-
+			// End the Contract
 			var url = 'https://www.odesk.com/api/hr/v2/contracts/' + req.body.contract + '.json?' +
 				'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
 			_.print('close job url = ' + url)
 			var reason = 'API_REAS_JOB_COMPLETED_SUCCESSFULLY'
 			var hireagain = 'yes'
-			_.print(o)
 			_.print(req.body.contract)
-
 			_.p(o.delete('hr/v2/contracts/' + req.body.contract, {
 				reason : reason,
 				would_hire_again : hireagain
 			}, _.p()))
 
-			// update the github issue ???
+			// Close the GitHub Issue if the user wants us to
+			var issue = getIssueByURL(req, req.body.issue_url)
+			issue.jobref = req.body.jobref
+			issue.odeskuserid = req.session.odesk.id
+			var close
+			(req.body.closeissue == 'on') ? close = true : close = false
+			try { closeIssue(issue, close) } catch(e) { _.print('closing the issue failed') }
 
 			res.redirect('/issues')
 		})
 	})
 
-function endContract(contract, odeskuserid) {
-	var o = getOByUserID(odeskuserid)
-	_.p(o.delete('hr/v2/contracts/' + contract, {
-		reason : 'API_REAS_JOB_COMPLETED_SUCCESSFULLY',
-		would_hire_again : 'yes'
-	}, _.p()))
-}
+	function endContract(contract, odeskuserid) {
+		var o = getOByUserID(odeskuserid)
+		_.p(o.delete('hr/v2/contracts/' + contract, {
+			reason : 'API_REAS_JOB_COMPLETED_SUCCESSFULLY',
+			would_hire_again : 'yes'
+		}, _.p()))
+	}
 
-function endJob(jobref, odeskuserid) {
-	var o = getOByUserID(odeskuserid)
+	function endJob(jobref, odeskuserid) {
+		var o = getOByUserID(odeskuserid)
 
-	_.p(o.delete('hr/v2/jobs/' + jobref, {
-		reason_code : '41'
-	}, _.p()))
-}
+		_.p(o.delete('hr/v2/jobs/' + jobref, {
+			reason_code : '41'
+		}, _.p()))
+	}
 
 
 // ------- ------- ------- ------- HELPER FUNCTIONS ------- ------- ------- -------
@@ -525,22 +556,25 @@ function endJob(jobref, odeskuserid) {
 
 // ------- ------- ------- ------- API FUNCTIONS ------- ------- ------- -------
 
+	function getIssueByURL(req, url) {
+		_.print('in getIssueByURL now')
+		var m = url.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
+
+		// make sure it's at least a github URL
+		if (!m) { res.send(false) }
+
+		var uid = m[1]
+		var repo = m[2]
+		var issuenum = m[3]
+		var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum + '?access_token=' + req.session.github.accessToken
+		var issue = _.unJson(_.wget(url))
+		issue.repo = repo
+		return issue
+	}
+
 	app.get('/api/getissuebyurl', function(req, res) {
 		_.run(function() {
-			
-//			https://github.com/mdlevinson/Experimentation/issues/5     (may or may not have 'www.')
-			var m = req.query.url.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
-
-			// make sure it's at least a github URL
-			if (!m) { res.send(false) }
-
-			var uid = m[1]
-			var repo = m[2]
-			var issuenum = m[3]
-			var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum + '?access_token=' + req.session.github.accessToken
-			var issue = _.unJson(_.wget(url))
-			issue.repo = repo
-			res.json(issue)
+			res.json(getIssueByURL(req, req.query.url))
 		})
 	})
 
@@ -852,12 +886,14 @@ function endJob(jobref, odeskuserid) {
 					title : c.engagement_title,
 					contractor : c.provider__name,
 					github_url : m[0],
+					issue_url : 'https://api.' + m[0],
 					odesk_url : 'http://www.odesk.com/e/' + c.buyer_company__reference + '/contracts/' + c.reference,
 					recno : c.reference,
 					company : c.buyer_company__reference,
 					team : c.buyer_team__reference,
 					amount : c.fixed_pay_amount_agreed,
-					amount_formatted : accounting.formatMoney(c.fixed_pay_amount_agreed)
+					amount_formatted : accounting.formatMoney(c.fixed_charge_amount_agreed),
+					jobref : c.job__reference
 				}
 				contracts.push(contract)
 			}
