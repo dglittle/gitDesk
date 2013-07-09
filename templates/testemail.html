@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}gitDesk - Test nodemailer{% endblock %}
+
+{% block body %}
+
+{% if mail_body %}
+<p>Your email was sent!</p>
+<p>To: {{email.name}} ({{email.email}})</p>
+<p>Subject: {{email.subject}}</p>
+<p>Body:</p>
+<p>{{email.body}}</p>
+{% endif %}
+
+<strong><a href="/issues" style="font-size:14px;">&lt;&lt;&nbsp;Back to Issues</a></strong>
+<hr>
+<h1 class="oH1">Send an Email!</h1>
+<p>Let's test nodemailer!</p></br>
+
+<form action="/testemail" method="POST">
+
+	<div class="oFormField">
+	    <label class="oLabel" for="recipient">Recipient:</label>
+	    <input type="text" name="recipient" id="recipient" class="oInputText oFormLrg" placeholder="John Smith <john@smith.com>" style="font-size:14px;">
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="subject">Subject:</label>
+	    <input type="text" name="subject" id="subject" class="oInputText oFormLrg" placeholder="Enter the subject line here" style="font-size:14px;">
+	</div>
+
+	<div class="oFormField">
+	    <label class="oLabel" for="body">Body:</label>
+	    <textarea id="body" name="body" value="" style="font-size:14px;"></textarea>
+	</div>
+
+	<footer class="oFormFooter">
+		<div class="oFieldValue">
+			<button class="oBtn oBtnPrimary oBtnLarge" type="submit" value-"submit" >Send Email</button>&nbsp;
+		</div>
+		<div class="oHint">This will send an actual email from gogitdesk@gmail.com</div>
+	</footer>
+</form>
+
+{% endblock body %}

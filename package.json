@@ -11,6 +11,8 @@
     "mongojs": "*",
     "connect-mongo": "*",
 
+	"nodemailer": "0.3.29",
+
     "swig": "*",
 	  "consolidate": "*",
 

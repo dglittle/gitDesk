@@ -33,6 +33,16 @@ var toType = function(obj) {
   return ({}).toString.call(obj).match(/\s([a-zA-Z]+)/)[1].toLowerCase()
 }
 
+// add email server
+var nodemailer = require("nodemailer")
+var smtpTransport = nodemailer.createTransport("SMTP",{
+   service: "Gmail",
+   auth: {
+       user: "gogitdesk@gmail.com",
+       pass: "odesk123"
+   }
+})
+
 _.run(function () {
 
 	var skill_dict = _.makeSet(_.unJson(_.read('./skills.json')))
@@ -105,7 +115,7 @@ _.run(function () {
 	        clientID: process.env.GITHUB_CLIENT_ID,
 	        clientSecret: process.env.GITHUB_CLIENT_SECRET,
 	        callbackURL: process.env.HOST + "/auth/github/callback",
-	        scope : ['public_repo'],
+	        scope : ['public_repo', 'user:email'],
 	        customHeaders: { "User-Agent": "gitDesk/1.0" }
 	    },
 	    function(accessToken, refreshToken, profile, done) {
@@ -332,6 +342,76 @@ _.run(function () {
 		})
 	})
 
+	// Test Emailing
+	app.get('/testemail', requirelogin, function (req, res) {
+		_.run(function(){
+//			_.print(req)
+			res.render('testemail.html', {})
+		})
+	})
+
+
+	function addBountyConfirmationEmail(email) {
+		email.subject = 'A job has been posted for your GitHub issue!'
+		email.body =
+					  '<p>Dear ' + email.githubuserid + ',</p>'
+					+ '<p>We have successfully posted a job on oDesk for your GitHub issue: '
+					+ email.issue_url + '.</p>'
+					+ '<p>The oDesk job can be found at: ' + email.job_url + '.</p>'
+					+ '<p>You can manage your GitDesk settings at http://warm-everglades-8745.herokuapp.com.</p>'
+					+ '<p>Thank you for using oDesk and GitDesk!</p>'
+		_.print(email.body)
+		sendEmail(email)
+	}
+
+    function sendEmail (email) {
+
+		var token = getGitHubTokenByUserID(email.githubuserid)
+		var url = 'https://api.github.com/user?access_token=' + token
+		var u = _.unJson(_.wget(url))
+
+		if (u.name) { email.name = u.name } else { email.name = u.login}
+		if (u.email) { email.email = u.email } else {
+			var url = 'https://api.github.com/user/emails?access_token=' + req.session.github.accessToken
+			var u = _.unJson(_.wget(url))
+			email.email = u[0]
+		}
+
+		smtpTransport.sendMail({
+			from: "GitDesk <gogitdesk@gmail.com>", // sender address
+			to: email.name + ' <' + email.email + '>', // comma separated list of receivers
+			subject: email.subject, // Subject line
+			html: email.body,
+			generateTextFromHTML: true
+		}, function(error, response){
+		   if(error){
+		       console.log(error);
+		   }else{
+		       console.log("Message sent: " + response.message);
+		   }
+		})
+	}
+
+    app.post('/testemail', requirelogin, function (req, res) {
+		_.run(function(){
+			var email = {}
+			email.subject = req.body.subject
+			email.body = req.body.body
+
+/*			var r = req.body.recipient.match(/(.+)\s+\<(.+@.+)\>/)
+			if (r) {
+				email.name = r[1]
+				email.email = r[2]
+			}
+*/
+			sendEmail(req, email)
+
+			res.render('testemail.html', {
+				email : email
+			})
+		})
+	})
+
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
 	function addbounty(issue, team, title, budget, description, visibility, odeskuserid, githubuserid, skills) {
@@ -396,6 +476,15 @@ _.run(function () {
 			}
 
 			logBounty(post)
+			
+			// WORK HERE
+			var email = {
+				issue_url : issue.html_url,
+				job_url : job.public_url,
+				githubuserid : githubuserid
+			}
+			addBountyConfirmationEmail(email)
+
 			return post
 		}
 	}
@@ -790,6 +879,10 @@ _.run(function () {
 
 	function getOByUserID(odeskuserid) {
 		return getOFromToken(_.p(db.collection("tokens").findOne( { "_id" : "odesk:" + odeskuserid }, _.p())))
+	}
+	
+	function getGitHubTokenByUserID(githubuserid) {
+		return _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p())).accessToken
 	}
 
 	function getTeams(req) {
