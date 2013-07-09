@@ -372,7 +372,7 @@ _.run(function () {
 
 		if (u.name) { email.name = u.name } else { email.name = u.login}
 		if (u.email) { email.email = u.email } else {
-			var url = 'https://api.github.com/user/emails?access_token=' + req.session.github.accessToken
+			var url = 'https://api.github.com/user/emails?access_token=' + token
 			var u = _.unJson(_.wget(url))
 			email.email = u[0]
 		}
@@ -494,7 +494,7 @@ _.run(function () {
 		_.run(function(){
 			var u = req.body.api_url + '?access_token=' + req.session.github.accessToken
 			var issue = _.unJson(_.wget(u))
-
+			_.print(issue)
 			var team = req.body.team
 			var title = req.body.title
 			var budget = req.body.price
