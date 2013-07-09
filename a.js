@@ -4,7 +4,12 @@ c = function() {
 	return 3
 }
 
+exports.world = function() {
+	console.log('world')
+}
 
+
+/*
 module.exports = {
 
 	c: c,
@@ -13,3 +18,4 @@ module.exports = {
 		return 4
 	}
 }
+*/

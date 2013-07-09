@@ -123,7 +123,7 @@ _.run(function () {
 	        consumerSecret: process.env.ODESK_API_SECRET,
 	        callbackURL: process.env.HOST + "/auth/odesk/callback"
 	    },
-	
+
 	    function(token, tokenSecret, profile, done) {
 	    	db.collection("tokens").update({
 	    		_id : "odesk:" + profile.id
@@ -380,7 +380,7 @@ _.run(function () {
 						"I'm offering [$" + (1*budget).toFixed(2) + " on oDesk]("+ job.public_url +") for someone to do this task. Learn how to [get your issues resolved on oDesk](http://warm-everglades-8745.herokuapp.com/about).\n"
 						+ "***" + '\n\n'
 						+ body
-						
+
 			updateIssue(issue, issueBody)
 
 			var post = {
@@ -412,9 +412,8 @@ _.run(function () {
 			var skills = validateSkills(req.body.skills)
 			var description = req.body.description
 
-			var visibility
+			var visibility = 'private'
 			if (req.body.visibility) { visibility = 'public' }
-			else { visibility = 'private' }
 
 			var post = addbounty(issue, team, title, budget, description, visibility, req.session.odesk.id, req.session.github.id, skills)
 			_.print('here is what the add bounty API returns:')
@@ -534,7 +533,7 @@ _.run(function () {
 	// Page to Test APIs
     app.get('/apitest', requirelogin, function (req, res) {
 		_.run(function(){
-			
+
 			var skill = 'javascript, php'
 			var skills = skill.split(/\s*,\s*/i)			
 			var ok = _.all(skills, function(skill) { return skill_dict[skill] })
@@ -597,7 +596,7 @@ _.run(function () {
 			res.redirect('/issues')
 		})
 	})
-	
+
 	app.all('/api/getodeskjobs', function (req, res) {
 		_.run(function () {
 			var a = getoDeskJobs(req)
@@ -628,7 +627,7 @@ _.run(function () {
 			}
 
 			var markdown = {
-				visibility : 'private',
+				visibility : 'public',
 				bounty : '',
 				skills: ''
 			}
@@ -669,14 +668,14 @@ _.run(function () {
 					} catch (e) {}
 
 					_.print('about to add bounty')
-					
+
 					// INSERT CODE TO REMOVE MARKDOWN ONCE THE ISSUE IS CREATED
 					if (bounty) { issueBody = issueBody.replace(bounty[0],'') }
 					if (visibility) { issueBody = issueBody.replace(visibility[0],'') }
 					if (skill_array) { issueBody = issueBody.replace(skill_array[0],'') }
 					_.print('the new body with markdown removed is: ')
 					_.print(issueBody)
-					
+
 					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, markdown.bounty, issueBody, markdown.visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, markdown.skills)
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
@@ -722,7 +721,7 @@ _.run(function () {
 				team : req.query.team,
 				html_url : 'https://github.com/' + req.query.githubuserid + '/' + req.query.repo
 			}
-			
+
 			_.p(db.collection("linkedrepos").insert(repository, _.p()))
 
 			res.redirect('/repos')
@@ -758,7 +757,7 @@ _.run(function () {
 	function logBounty(post) {
 		_.p(db.collection("posts").insert(post, _.p()))
 	}
-	
+
 	function getGitDeskJobs() {
 		if (arguments[0]) {
 			var uid = arguments[0]
@@ -812,10 +811,10 @@ _.run(function () {
 	}
 
     function getoDeskJobs(req) {
-	
+
 		// get the companies this user is in
 		var teams = getTeams(req)
-		
+
 		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
 		var j = []
 		var jobs = []

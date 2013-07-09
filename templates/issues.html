@@ -21,7 +21,7 @@
 	{% endif %}	
 	</br></br></br></br>
 
-	<h2>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Jobs with linked GitHub issues</span></h2>
+	<h2>Open Bounties&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Active oDesk job postings linked to a GitHub issue</span></h2>
 	{% if jobs|length > 0 %}
 		{% for job in jobs %}
 		<h1 class="oH5 oHInline">{{ job.title }}</h1><span class="oNull">
@@ -37,15 +37,15 @@
 	<a class="oBtn oBtnPrimary" href="../addbounty">Post Bounty to Existing GitHub Issue</a>
 	</br></br></br></br>
 
-	<h2>Active Jobs&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Issues you have hired someone to resolve</span></h2>
-	{% if contracts %}
+	<h2>Active Hires&nbsp;&nbsp;<span style="font-size: 0.7em;font-family:sans-serif;">Contractors you have hired to resolve a GitHub issue</span></h2>
+	{% if contracts|length > 0 %}
 		{% for contract in contracts %}
 		<h1 class="oH5 oHInline">{{ contract.title }}</h1><span class="oNull">
 			<a href="https://www.{{ contract.github_url }}" style="color: inherit">{{ contract.github_url }}</a></span></br>
 			{{ contract.contractor }}&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{ contract.odesk_url }}">view job on oDesk</a>
 			&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#closeModal{{loop.index}}" data-toggle="modal" id="close1">Close and Pay</a></br></br>
 		{% endfor %}
-  	{% else %}<i>No active jobs</i>{% endif %}
+  	{% else %}<p>No active jobs. <a href="../addbounty">Add a bounty now</a> or <a href="../repos">link a repo</a> and create a GitHub issue!</p>{% endif %}
 
 {% if contracts %}
 	{% for contract in contracts %}

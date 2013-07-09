@@ -5,24 +5,24 @@
 {% block issues %}
 
 <article class="oMsg oMsgSuccess">
-Congratulations, you have posted a bounty! <a href="{{joburl}}">View your job here</a>.
+Congratulations, you have posted a bounty! <a href="{{post.job_url}}">View your job here</a>.
 </article>
 
 {% if team %}
 <div class="oFormField">
     <label class="oLabel">Team</label>
-    <div class="oFieldValue"><label class="oOptLbl">{{team}}</label></div>
+    <div class="oFieldValue"><label class="oOptLbl">{{post.buyer_team__reference}}</label></div>
 </div>
 {% endif %}
 
 <div class="oFormField">
     <label class="oLabel">Job Title</label>
-    <div class="oFieldValue"><label class="oOptLbl">{{title}}</label></div>
+    <div class="oFieldValue"><label class="oOptLbl">{{post.title}}</label></div>
 </div>
 
 <div class="oFormField">
     <label class="oLabel">Job Description</label>
-    <div class="oFieldValue"><label class="oOptLbl">{{description}}</label></div>
+    <div class="oFieldValue"><label class="oOptLbl">{{post.description}}</label></div>
 </div>
 
 <div class="oFormField">
