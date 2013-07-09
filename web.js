@@ -313,18 +313,6 @@ _.run(function () {
 		})
 	})
 
-	// Add Bounty — Confirmation
-    app.get('/confirm', requirelogin, function (req, res) {
-		_.run(function(){
-			res.render('confirmbounty.html', {
-				title: "Issue Title" , // req.body.title,
-				description: "This is the description of the issue", // description,
-				team: "" , // req.body.team,
-				joburl: "http://www.google.com" // job.public_url
-			})
-		})
-	})
-
 	// Learn More
     app.get('/about', function (req, res) {
 		_.run(function(){
@@ -355,10 +343,11 @@ _.run(function () {
 		email.subject = 'A job has been posted for your GitHub issue!'
 		email.body =
 					  '<p>Dear ' + email.githubuserid + ',</p>'
-					+ '<p>We have successfully posted a job on oDesk for your GitHub issue: '
-					+ email.issue_url + '.</p>'
-					+ '<p>The oDesk job can be found at: ' + email.job_url + '.</p>'
-					+ '<p>You can manage your GitDesk settings at http://warm-everglades-8745.herokuapp.com.</p>'
+					+ '<p>We have successfully posted a job on oDesk for your GitHub issue:<br>'
+					+ email.issue_url + '</p>'
+					+ '<p>The oDesk job can be found at:<br>' + email.job_url + '.</p>'
+					+ '<p>You can always view your GitDesk jobs and manage your GitDesk settings at:<br>'
+					+ 'http://warm-everglades-8745.herokuapp.com.</p>'
 					+ '<p>Thank you for using oDesk and GitDesk!</p>'
 		_.print(email.body)
 		sendEmail(email)
@@ -414,50 +403,52 @@ _.run(function () {
 
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
-	function addbounty(issue, team, title, budget, description, visibility, odeskuserid, githubuserid, skills) {
+	function addbounty(issue, job, odeskuserid, githubuserid) {
 		var o = getOByUserID(odeskuserid)
-		_.print(arguments)
+//		_.print(arguments)
+
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
 	        function zeroPrefix(x) { x = "" + x; return x.length < 2 ? '0' + x : x }
 	        return zeroPrefix(d.getMonth() + 1) + "-" + zeroPrefix(d.getDate()) + "-" + d.getFullYear()
 	    }
 
-		var body = description
-		description.length > 300 ? description = description.substring(0,300) + '...' : description = description
-		_.print(description)
+		var body = job.description
+		job.description.length > 300 ? job.description = job.description.substring(0,300) + '...' : job.description = job.description
 
-		description =		"Resolve the following GitHub issue:" + '\n\n'
-							+ issue.html_url + '\n\n'
-							+ "To apply, please answer the following questions:" + '\n'
-							+ "1) What is your GitHub ID?" + '\n'
-							+ "2) How long do you think it will take you to resolve this issue?" + '\n\n\n'
-							+ "********************************************" + '\n'
-							+ "The GitHub issue body begins as follows:" + '\n\n'
-							+ description
+		job.description =		  "Resolve the following GitHub issue:" + '\n\n'
+								+ issue.html_url + '\n\n'
+								+ "To apply, please answer the following questions:" + '\n'
+								+ "1) What is your GitHub ID?" + '\n'
+								+ "2) How long do you think it will take you to resolve this issue?" + '\n\n\n'
+								+ "********************************************" + '\n'
+								+ "The GitHub issue body begins as follows:" + '\n\n'
+								+ job.description
 
 		var post = 			{
-								buyer_team__reference : team,
+								buyer_team__reference : job.team,
 								category : 'Web Development',
 								subcategory : 'Web Programming',
-								title : title,
-								description : description,
-								budget : budget,
-								visibility : visibility,
+								title : job.title,
+								description : job.description,
+								budget : job.budget,
+								visibility : job.visibility,
 								job_type : 'fixed-price',
 								end_date : getDateFromNow(1000 * 60 * 60 * 24 * 7),
-								skills : skills
+								skills : job.skills
 							}
+
 		if (true) {
 
-			_.print('about to post the odesk job')
+			_.print('about to post the odesk job:')
+//			_.print(post)
 			var job = _.p(o.post('hr/v2/jobs', post, _.p())).job
 			_.print('the returned odesk job:')
 			_.print(job.reference)
 
 			// update the gitDesk issue
 			var issueBody = "***" + '\n' +
-						"I'm offering [$" + (1*budget).toFixed(2) + " on oDesk]("+ job.public_url +") for someone to do this task. Learn how to [get your issues resolved on oDesk](http://warm-everglades-8745.herokuapp.com/about).\n"
+						"I'm offering [$" + (1*post.budget).toFixed(2) + " on oDesk]("+ job.public_url +") for someone to do this task. Learn how to [get your issues resolved on oDesk](http://warm-everglades-8745.herokuapp.com/about).\n"
 						+ "***" + '\n\n'
 						+ body
 
@@ -494,26 +485,30 @@ _.run(function () {
 		_.run(function(){
 			var u = req.body.api_url + '?access_token=' + req.session.github.accessToken
 			var issue = _.unJson(_.wget(u))
-			_.print(issue)
-			var team = req.body.team
-			var title = req.body.title
-			var budget = req.body.price
-			var skills = validateSkills(req.body.skills)
-			var description = req.body.description
+//			_.print(issue)
 
 			var visibility = 'private'
 			if (req.body.visibility) { visibility = 'public' }
 
-			var post = addbounty(issue, team, title, budget, description, visibility, req.session.odesk.id, req.session.github.id, skills)
+			var job = {
+				team : req.body.team,
+				title : req.body.title,
+				budget : req.body.price,
+				skills : validateSkills(req.body.skills),
+				description : req.body.description,
+				visibility : visibility
+			}
+
+			var post = addbounty(issue, job, req.session.odesk.id, req.session.github.id)
 			_.print('here is what the add bounty API returns:')
 			_.print(post)
+			_.print('')
+
+			job.job_url = post.odesk.job_url
+			job.budget = accounting.formatMoney(job.budget)
 
 			res.render('confirmbounty.html', {
-				title: title,
-				description: description,
-				team: team,
-				joburl: post.odesk.job_url,
-				budget: budget
+				post : job
 			})
 		})
 	})
@@ -638,7 +633,7 @@ _.run(function () {
 		var skill_array = skills.split(/\s*,\s*/i)
 		skill_array = _.filter(skill_array, function(skill) { return skill_dict[skill] })
 		skills = skill_array.join(';')
-		_.print('skills: ' + skills)
+//		_.print('skills: ' + skills)
 		return skills
 	}
 
@@ -765,7 +760,16 @@ _.run(function () {
 					_.print('the new body with markdown removed is: ')
 					_.print(issueBody)
 
-					addbounty(req.body.issue, linkedrepo.team, req.body.issue.title, markdown.bounty, issueBody, markdown.visibility, linkedrepo.odeskuserid, linkedrepo.githubuserid, markdown.skills)
+					var job = {
+						team : linkedrepo.team,
+						title : req.body.issue.title,
+						budget : markdown.bounty,
+						skills : markdown.skills,
+						description : issueBody,
+						visibility : markdown.visibility
+					}
+
+					addbounty(req.body.issue, job, linkedrepo.odeskuserid, linkedrepo.githubuserid)
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
