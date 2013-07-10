@@ -119,12 +119,33 @@ _.run(function () {
 	        customHeaders: { "User-Agent": "gitDesk/1.0" }
 	    },
 	    function(accessToken, refreshToken, profile, done) {
-	    	db.collection("tokens").update({
-	    		_id : "github:" + profile.username
-	    	}, { $set : { accessToken : accessToken, refreshToken : refreshToken }
-	    	}, { upsert : true}, function () {
-            	done(null, { id : profile.username, accessToken : accessToken, refreshToken : refreshToken })
-            })
+
+			// get the user's github email
+			var email
+			var name
+			_.run(function () {
+				var u = _.unJson(_.wget('https://api.github.com/user?access_token=' + accessToken))
+				_.print('u = ')
+				_.print(u)
+				if (u.name) { name = u.name } else { name = '' }
+				if (u.email) { email = u.email } else {
+					var u = _.unJson(_.wget('https://api.github.com/user/emails?access_token=' + accessToken))
+					email = u[0]
+				}
+				
+				db.collection("tokens").update({
+		    		_id : "github:" + profile.username
+		    	}, { $set : { accessToken : accessToken, refreshToken : refreshToken }
+		    	}, { upsert : true}, function () {
+	            	done(null, {
+						id : profile.username,
+						accessToken : accessToken,
+						refreshToken : refreshToken,
+						email : email,
+						name : name
+					})
+	            })
+			})
 	    }
 	))
 
@@ -139,7 +160,11 @@ _.run(function () {
 	    		_id : "odesk:" + profile.id
 	    	}, { $set : { accessToken : token, tokenSecret : tokenSecret }
 	    	}, { upsert : true}, function () {
-            	done(null, { id : profile.id, accessToken : token, tokenSecret : tokenSecret })
+            	done(null, {
+					id : profile.id,
+					accessToken : token,
+					tokenSecret : tokenSecret
+				})
             })
 	    }
 	))
@@ -216,7 +241,8 @@ _.run(function () {
 			var jobs = getoDeskJobs(req)
 			var contracts = getoDeskContracts(req)
 			var repos = getLinkedRepos(req.session.github.id)
-			_.print(contracts)
+			_.print('req.session.github = ')
+			_.print(req.session.github)
 			res.render('issues.html', {
 				jobs: jobs,
 				contracts: contracts,
@@ -350,26 +376,14 @@ _.run(function () {
 					+ '<p>You can always view your GitDesk jobs and manage your GitDesk settings at:<br>'
 					+ 'http://warm-everglades-8745.herokuapp.com.</p>'
 					+ '<p>Thank you for using oDesk and GitDesk!</p>'
-		_.print(email.body)
 		sendEmail(email)
 	}
 
     function sendEmail (email) {
 
-		var token = getGitHubTokenByUserID(email.githubuserid)
-		var url = 'https://api.github.com/user?access_token=' + token
-		var u = _.unJson(_.wget(url))
-
-		if (u.name) { email.name = u.name } else { email.name = u.login}
-		if (u.email) { email.email = u.email } else {
-			var url = 'https://api.github.com/user/emails?access_token=' + token
-			var u = _.unJson(_.wget(url))
-			email.email = u[0]
-		}
-
 		smtpTransport.sendMail({
 			from: "GitDesk <gogitdesk@gmail.com>", // sender address
-			to: email.name + ' <' + email.email + '>', // comma separated list of receivers
+			to: email.email, // comma separated list of receivers
 			subject: email.subject, // Subject line
 			html: email.body,
 			generateTextFromHTML: true
@@ -388,12 +402,6 @@ _.run(function () {
 			email.subject = req.body.subject
 			email.body = req.body.body
 
-/*			var r = req.body.recipient.match(/(.+)\s+\<(.+@.+)\>/)
-			if (r) {
-				email.name = r[1]
-				email.email = r[2]
-			}
-*/
 			sendEmail(req, email)
 
 			res.render('testemail.html', {
@@ -404,9 +412,8 @@ _.run(function () {
 
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
-	function addbounty(issue, job, odeskuserid, githubuserid) {
-		var o = getOByUserID(odeskuserid)
-//		_.print(arguments)
+	function addbounty(issue, job, user) {
+		var o = getOByUserID(user.odeskuserid)
 
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
@@ -457,12 +464,12 @@ _.run(function () {
 
 			var post = {
 				odesk: {
-					uid: odeskuserid,
+					uid: user.odeskuserid,
 					job_url: job.public_url,
 					recno: job.reference
 				},
 				github: {
-					uid: githubuserid,
+					uid: user.githubuserid,
 					issue_url: issue.html_url
 				}
 			}
@@ -473,7 +480,9 @@ _.run(function () {
 			var email = {
 				issue_url : issue.html_url,
 				job_url : job.public_url,
-				githubuserid : githubuserid
+				githubuserid : user.githubuserid,
+				email : user.githubemail,
+				name : user.githubname
 			}
 			addBountyConfirmationEmail(email)
 
@@ -497,10 +506,17 @@ _.run(function () {
 				budget : req.body.price,
 				skills : validateSkills(req.body.skills),
 				description : req.body.description,
-				visibility : visibility
+				visibility : visibility,
+			}
+			
+			var user = {
+				odeskuserid : req.session.odesk.id,
+				githubuserid : req.session.github.id,
+				githubemail : req.session.github.email,
+				githubname : req.session.github.name
 			}
 
-			var post = addbounty(issue, job, req.session.odesk.id, req.session.github.id)
+			var post = addbounty(issue, job, user)
 			_.print('here is what the add bounty API returns:')
 			_.print(post)
 			_.print('')
@@ -770,7 +786,14 @@ _.run(function () {
 						visibility : markdown.visibility
 					}
 
-					addbounty(req.body.issue, job, linkedrepo.odeskuserid, linkedrepo.githubuserid)
+					var user = {
+						odeskuserid : linkedrepo.odeskuserid,
+						githubuserid : linkedrepo.githubuserid,
+						githubemail : linkedrepo.githubemail,
+						githubname : linkedrepo.githubname
+					}
+
+					addbounty(req.body.issue, job, user)
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
@@ -811,6 +834,8 @@ _.run(function () {
 			var repository = {
 				githubuserid : req.query.githubuserid,
 				odeskuserid : req.session.odesk.id,
+				githubname : req.session.github.name,
+				githubemail : req.session.github.email,
 				repo : req.query.repo,
 				team : req.query.team,
 				html_url : 'https://github.com/' + req.query.githubuserid + '/' + req.query.repo
