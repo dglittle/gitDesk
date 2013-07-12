@@ -122,29 +122,19 @@ _.run(function () {
 
 			// get the user's github email
 			var email
-			var name
 			_.run(function () {
 				var u = _.unJson(_.wget('https://api.github.com/user?access_token=' + accessToken))
-				_.print('u = ')
-				_.print(u)
-				if (u.name) { name = u.name } else { name = '' }
 				if (u.email) { email = u.email } else {
 					var u = _.unJson(_.wget('https://api.github.com/user/emails?access_token=' + accessToken))
 					email = u[0]
 				}
-				
-				db.collection("tokens").update({
-		    		_id : "github:" + profile.username
-		    	}, { $set : { accessToken : accessToken, refreshToken : refreshToken }
-		    	}, { upsert : true}, function () {
-	            	done(null, {
-						id : profile.username,
-						accessToken : accessToken,
-						refreshToken : refreshToken,
-						email : email,
-						name : name
-					})
-	            })
+
+           		done(null, {
+					id : profile.username,
+					accessToken : accessToken,
+					refreshToken : refreshToken,
+					email : email,
+				})
 			})
 	    }
 	))
@@ -156,16 +146,16 @@ _.run(function () {
 	    },
 
 	    function(token, tokenSecret, profile, done) {
-	    	db.collection("tokens").update({
-	    		_id : "odesk:" + profile.id
-	    	}, { $set : { accessToken : token, tokenSecret : tokenSecret }
-	    	}, { upsert : true}, function () {
-            	done(null, {
+			_.run(function () {
+	            done(null, {
 					id : profile.id,
 					accessToken : token,
-					tokenSecret : tokenSecret
+					tokenSecret : tokenSecret,
+					first_name : profile.name.givenName,
+					last_name : profile.name.familyName,
+					portrait : "https://odesk-prod-portraits.s3.amazonaws.com/Users:mlevinson:PortraitUrl_50?AWSAccessKeyId=1XVAX3FNQZAFC9GJCFR2&Expires=2147483647&Signature=QV8ZeSrhEh2scPRQQ8IkKF%2FkaF8%3D",
 				})
-            })
+			})
 	    }
 	))
 
@@ -180,15 +170,55 @@ _.run(function () {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    app.use(function (req, res, next) {
-    	req.user = {
-    		odeskuserid : req.session.odesk && req.session.odesk.id,
-    		githubuserid : req.session.github && req.session.github.id,
-    		team : req.session.team
-    	}
-    	res.locals.user = req.user
-        next()
-    })
+	app.use(function (req, res, next) {
+		_.run(function(){
+
+			var user = {}
+
+			if(req.session.odesk) {
+				_.print('odeskuserid = ' + req.session.odesk.id)
+
+				if (req.session.github) {
+					_.print('githubuserid = ' + req.session.github.id)
+					var mongouser = _.p(db.collection("users").findOne( {
+						"_id" : req.session.odesk.id + ':' + req.session.github.id
+					}, _.p()))
+
+					if(mongouser) {
+						_.print('the user exists in mongo!')
+						user = mongouser
+						// Add logic to fill in the token(s) if they're missing in mongo
+
+					} else {
+						_.print('the user does not exist in mongo yet')
+						user = {
+							_id : req.session.odesk.id + ':' + req.session.github.id,
+							odeskuserid : req.session.odesk.id,
+							odeskaccessToken : req.session.odesk.accessToken,
+							odesktokenSecret : req.session.odesk.tokenSecret,
+							githubuserid : req.session.github.id,
+							githubaccessToken : req.session.github.accessToken,
+							githubrefreshToken : req.session.github.refreshToken,
+							first_name : req.session.odesk.first_name,
+							last_name : req.session.odesk.familyName,
+							email : req.session.github.email,
+							portrait : req.session.odesk.portrait,
+							team : req.session.team
+						} // end setting user variable
+						_.p(db.collection("users").insert(user, _.p()))
+					}
+				} else { // yes odesk session but no github session
+					_.print('but we don\'t have an github session yet')
+					_.print('setting just req.user.odesk')
+					user.odeskuserid = req.session.odesk.id
+					_.print(user)
+				}
+			}
+			req.user = user
+			res.locals.user = req.user
+	        next()
+		}) // end _.run
+	}) // end app.use
 
     app.get('/logout', function (req, res){
         req.session.odesk = null
@@ -219,13 +249,11 @@ _.run(function () {
 
 	// Splash page and auth for clients
 	app.get('/auth', function (req, res) {
-
+		_.print(res.locals.user)
 		if (res.locals.user.odeskuserid && res.locals.user.githubuserid) {
 			res.redirect('/issues')
 			return
-		}
-		res.render ('auth.html', {
-		})
+		} else res.render ('auth.html', {})
 	})
 
 	// Splash page and auth for contractors
@@ -238,11 +266,11 @@ _.run(function () {
 	// Dashboard: View Open Bounties and Active Jobs
 	app.get('/issues', requirelogin, function (req, res) {
 		_.run(function(){
-			var jobs = getoDeskJobs(req)
-			var contracts = getoDeskContracts(req)
-			var repos = getLinkedRepos(req.session.github.id)
-			_.print('req.session.github = ')
-			_.print(req.session.github)
+
+			var jobs = getoDeskJobs(req.user)
+			var contracts = getoDeskContracts(req.user)
+			var repos = getLinkedRepos(req.user.githubuserid)
+
 			res.render('issues.html', {
 				jobs: jobs,
 				contracts: contracts,
@@ -258,8 +286,8 @@ _.run(function () {
 	// Add Bounty Form
 	app.get('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = getRepos(req)
-			t = getTeams(req)
+			repos = getRepos(req.user)
+			t = getTeams(req.user)
 			teams = t.sort(sort_by('company__name', false, function(a){return a.toUpperCase()}))
 			res.render('addbounty.html', {
 
@@ -267,27 +295,24 @@ _.run(function () {
 		})
 	})
 
-	function updateIssue(issue, body) {
+	function updateIssue(user, issue, body) {
 		_.print('updating issue body')
 
 		// update the GitHub issue
-		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + issue.user.login }, _.p()))
-		u = issue.url + '?access_token=' + g.accessToken
+		u = issue.url + '?access_token=' + user.githubaccessToken
 		var s = _.wget('PATCH', u, _.json({
 			body : 	body
 		}))		
 	}
 
-	function closeIssue(issue, close) {
-		_.print('in closeIssue now')
+	function closeIssue(user, issue, close) {
+		_.print('closing issue')
+		_.print('user = ')
+		_.print(user)
 
-		// get GitHub token
-		var g = _.p(db.collection("tokens").findOne( { "_id" : "github:" + issue.user.login }, _.p()))
-		var u = issue.url + '?access_token=' + g.accessToken		
-
-		// get oDesk job URL
-		var joburl = _.p(getOByUserID(issue.odeskuserid).get('hr/v2/jobs/' + issue.jobref + '.json', _.p())).job.public_url
-		_.print(joburl)
+		// get the URL of the linked oDesk Job
+		var joburl = _.p(getO(user).get('hr/v2/jobs/' + issue.jobref + '.json', _.p())).job.public_url
+		_.print('the odesk job url is: ' + joburl)
 
 		// construct message to prepend to the GitHub issue
 		var prepend = issue.body.match(/\*{3}[\n\r]*.+[\n\r]*\*{3}/)
@@ -296,19 +321,19 @@ _.run(function () {
 								+ "***"
 		issue.body = issue.body.replace(prepend, newprepend)
 
-		// update the issue
+		// update the GitHub issue
 		var update = {}
 		update.body = issue.body
 		if (close) { update.state = 'closed' }
-
+		var u = issue.url + '?access_token=' + user.githubaccessToken
 		var s = _.wget('PATCH', u, _.json(update))
 	}
 
 	// Manage Repos
     app.get('/repos', requirelogin, function (req, res) {
 		_.run(function(){
-			var repos = getRepos(req)
-			var teams = getTeams(req)
+			var repos = getRepos(req.user)
+			var teams = getTeams(req.user)
 			_.each(repos, function(ghr) {
 				if (ghr.is_linked) {
 					_.each(teams, function(team) {
@@ -316,10 +341,9 @@ _.run(function () {
 					})
 				}
 			})
-			var githubuserid = req.session.github.id
 			res.render('repos.html', {
 				repos : repos,
-				githubuserid : githubuserid,
+				githubuserid : req.user.githubuserid,
 				teams : teams
 			})
 		})
@@ -349,8 +373,8 @@ _.run(function () {
 	// Add Issue Form
     app.get('/addissue', requirelogin, function (req, res) {
 		_.run(function(){
-			repos = getRepos(req) 
-			teams = getTeams(req)
+			repos = getRepos(req.user) 
+			teams = getTeams(req.user)
 			res.render('addissue.html', {
 			})
 		})
@@ -359,16 +383,15 @@ _.run(function () {
 	// Test Emailing
 	app.get('/testemail', requirelogin, function (req, res) {
 		_.run(function(){
-//			_.print(req)
 			res.render('testemail.html', {})
 		})
 	})
 
 
-	function addBountyConfirmationEmail(email) {
+	function addBountyConfirmationEmail(user, email) {
 		email.subject = 'A job has been posted for your GitHub issue!'
 		email.body =
-					  '<p>Dear ' + email.githubuserid + ',</p>'
+					  '<p>Dear ' + user.first_name + ',</p>'
 					+ '<p>We have successfully posted a job on oDesk for your GitHub issue:<br>'
 					+ email.issue_url + '</p>'
 					+ '<p>The oDesk job can be found at:<br>' + email.job_url + '</p>'
@@ -376,14 +399,14 @@ _.run(function () {
 					+ '<p>You can always view your GitDesk jobs and manage your GitDesk settings at:<br>'
 					+ 'http://warm-everglades-8745.herokuapp.com.</p>'
 					+ '<p>Thank you for using oDesk and GitDesk!</p>'
-		sendEmail(email)
+		sendEmail(user, email)
 	}
 
-    function sendEmail (email) {
+    function sendEmail (user, email) {
 
 		smtpTransport.sendMail({
 			from: "GitDesk <gogitdesk@gmail.com>", // sender address
-			to: email.email, // comma separated list of receivers
+			to: user.first_name + ' ' + user.last_name + '<' + user.email + '>', // comma separated list of receivers
 			subject: email.subject, // Subject line
 			html: email.body,
 			generateTextFromHTML: true
@@ -402,7 +425,7 @@ _.run(function () {
 			email.subject = req.body.subject
 			email.body = req.body.body
 
-			sendEmail(req, email)
+			sendEmail(req.user, email)
 
 			res.render('testemail.html', {
 				email : email
@@ -412,8 +435,8 @@ _.run(function () {
 
 // ------- ------- ------- ------- "POST" APP ROUTES ------- ------- ------- -------
 
-	function addbounty(issue, job, user) {
-		var o = getOByUserID(user.odeskuserid)
+	function addbounty(user, issue, job) {
+		var o = getO(user)
 
 	    function getDateFromNow(fromNow) {
 	        var d = new Date(_.time() + fromNow)
@@ -460,7 +483,7 @@ _.run(function () {
 						+ "***" + '\n\n'
 						+ body
 
-			updateIssue(issue, issueBody)
+			updateIssue(user, issue, issueBody)
 
 			var post = {
 				odesk: {
@@ -475,16 +498,13 @@ _.run(function () {
 			}
 
 			logBounty(post)
-			
+
 			// WORK HERE
 			var email = {
 				issue_url : issue.html_url,
 				job_url : job.public_url,
-				githubuserid : user.githubuserid,
-				email : user.githubemail,
-				name : user.githubname
 			}
-			addBountyConfirmationEmail(email)
+			addBountyConfirmationEmail(user, email)
 
 			return post
 		}
@@ -493,7 +513,7 @@ _.run(function () {
 	// Add Bounty to Existing Issue	
     app.post('/addbounty', requirelogin, function (req, res) {
 		_.run(function(){
-			var u = req.body.api_url + '?access_token=' + req.session.github.accessToken
+			var u = req.body.api_url + '?access_token=' + req.user.githubaccessToken
 			var issue = _.unJson(_.wget(u))
 //			_.print(issue)
 
@@ -508,15 +528,8 @@ _.run(function () {
 				description : req.body.description,
 				visibility : visibility,
 			}
-			
-			var user = {
-				odeskuserid : req.session.odesk.id,
-				githubuserid : req.session.github.id,
-				githubemail : req.session.github.email,
-				githubname : req.session.github.name
-			}
 
-			var post = addbounty(issue, job, user)
+			var post = addbounty(req.user, issue, job)
 			_.print('here is what the add bounty API returns:')
 			_.print(post)
 			_.print('')
@@ -533,8 +546,7 @@ _.run(function () {
 	// Close an Issue and Optionally Pay
     app.post('/closeissue', requirelogin, function (req, res) {
 		_.run(function(){
-
-			var o = getO(req)
+			var o = getO(req.user)
 			var pay_option = req.body.radiogroup
 			var amount = 0
 			if(pay_option == 'closeandpaycustom') { amount = req.body.amount }
@@ -555,31 +567,26 @@ _.run(function () {
 			} // end if
 
 			// End the Contract
-			var url = 'https://www.odesk.com/api/hr/v2/contracts/' + req.body.contract + '.json?' +
-				'reason=API_REAS_JOB_COMPLETED_SUCCESSFULLY&would_hire_again=yes'
-			_.print('close job url = ' + url)
-			var reason = 'API_REAS_JOB_COMPLETED_SUCCESSFULLY'
-			var hireagain = 'yes'
-			_.print(req.body.contract)
+			_.print('closing job ' + req.body.contract)
 			_.p(o.delete('hr/v2/contracts/' + req.body.contract, {
-				reason : reason,
-				would_hire_again : hireagain
+				reason : 'API_REAS_JOB_COMPLETED_SUCCESSFULLY',
+				would_hire_again : 'yes'
 			}, _.p()))
 
 			// Close the GitHub Issue if the user wants us to
-			var issue = getIssueByURL(req, req.body.issue_url)
+			var issue = getIssueByURL(req.user, req.body.issue_url)
 			issue.jobref = req.body.jobref
-			issue.odeskuserid = req.session.odesk.id
+			issue.odeskuserid = req.user.odeskuserid
 			var close
 			(req.body.closeissue == 'on') ? close = true : close = false
-			try { closeIssue(issue, close) } catch(e) { _.print('closing the issue failed') }
+			try { closeIssue(req.user, issue, close) } catch(e) { _.print('closing the issue failed') }
 
 			res.redirect('/issues')
 		})
 	})
 
 	function endContract(contract, odeskuserid) {
-		var o = getOByUserID(odeskuserid)
+		var o = getO(getUser(odeskuserid))
 		_.p(o.delete('hr/v2/contracts/' + contract, {
 			reason : 'API_REAS_JOB_COMPLETED_SUCCESSFULLY',
 			would_hire_again : 'yes'
@@ -587,7 +594,7 @@ _.run(function () {
 	}
 
 	function endJob(jobref, odeskuserid) {
-		var o = getOByUserID(odeskuserid)
+		var o = getO(getUser(odeskuserid))
 
 		_.p(o.delete('hr/v2/jobs/' + jobref, {
 			reason_code : '41'
@@ -599,7 +606,8 @@ _.run(function () {
 
 	// Require Login for all pages besides 'auth'
 	function requirelogin(req, res, next) {
-	    if (!req.user || !req.user.githubuserid || !req.user.odeskuserid) {
+	    if (!req.user || !req.user.odeskuserid || !req.user.githubuserid) {
+			_.print(req.user)
 	        res.redirect('/auth')
 		} else { next() }
 	}
@@ -616,11 +624,10 @@ _.run(function () {
 		return items
 	}
 
-	function getRepos (req) {
-		var githubuserid = req.user.githubuserid
-		var repos = githubGetAll('https://api.github.com/users/'+githubuserid+
-				'/repos?access_token=' + req.session.github.accessToken)
-		var linked_repos =  getLinkedRepos(githubuserid)
+	function getRepos (user) {
+		var repos = githubGetAll('https://api.github.com/users/'+ user.githubuserid +
+				'/repos?access_token=' + user.githubaccessToken)
+		var linked_repos =  getLinkedRepos(user.githubuserid)
 		_.each(repos, function(ghr) {
 			_.each(linked_repos, function(lr) {
 				if (ghr.name == lr.repo) { 
@@ -656,7 +663,7 @@ _.run(function () {
 
 // ------- ------- ------- ------- API FUNCTIONS ------- ------- ------- -------
 
-	function getIssueByURL(req, url) {
+	function getIssueByURL(user, url) {
 		_.print('in getIssueByURL now')
 		var m = url.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
 
@@ -666,7 +673,7 @@ _.run(function () {
 		var uid = m[1]
 		var repo = m[2]
 		var issuenum = m[3]
-		var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum + '?access_token=' + req.session.github.accessToken
+		var url = 'https://api.github.com/repos/'+uid+'/'+repo+'/issues/'+issuenum + '?access_token=' + user.githubaccessToken
 		var issue = _.unJson(_.wget(url))
 		issue.repo = repo
 		return issue
@@ -674,13 +681,13 @@ _.run(function () {
 
 	app.get('/api/getissuebyurl', function(req, res) {
 		_.run(function() {
-			res.json(getIssueByURL(req, req.query.url))
+			res.json(getIssueByURL(req.user, req.query.url))
 		})
 	})
 
 	app.all('/api/getteams', function (req, res) {
 		_.run(function () {
-			res.json(getTeams(req))
+			res.json(getTeams(req.user))
 		})
 	})
 
@@ -700,7 +707,7 @@ _.run(function () {
 
 	app.all('/api/getodeskjobs', function (req, res) {
 		_.run(function () {
-			var a = getoDeskJobs(req)
+			var a = getoDeskJobs(req.user)
 			res.json(a)
 		})
 	})
@@ -708,7 +715,7 @@ _.run(function () {
 	// get issues for a particular repo
 	app.get('/api/getissuesbyrepo', function(req, res) {
 		_.run(function() {
-			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues' + '?access_token=' + req.session.github.accessToken)
+			var issues = _.wget('https://api.github.com/repos/'+req.user.githubuserid+'/'+req.query.repo+'/issues' + '?access_token=' + req.user.githubaccessToken)
 			res.json(issues)
 		})
 	})
@@ -786,14 +793,8 @@ _.run(function () {
 						visibility : markdown.visibility
 					}
 
-					var user = {
-						odeskuserid : linkedrepo.odeskuserid,
-						githubuserid : linkedrepo.githubuserid,
-						githubemail : linkedrepo.githubemail,
-						githubname : linkedrepo.githubname
-					}
-
-					addbounty(req.body.issue, job, user)
+					var user = getUser(linkedrepo.odeskuserid)
+					addbounty(user, req.body.issue, job)
 
 				} catch (e) { _.print(e); _.print('error: ' + (e.stack || e)) }
 
@@ -815,7 +816,7 @@ _.run(function () {
 	app.all('/api/linkrepo', function (req, res) {
 		_.run(function () {
 
-			var u = 'https://api.github.com/repos/' + req.session.github.id + '/' + req.query.repo + '/hooks?access_token=' + req.session.github.accessToken
+			var u = 'https://api.github.com/repos/' + req.user.githubuserid + '/' + req.query.repo + '/hooks?access_token=' + req.user.githubaccessToken
 
 			var s = _.wget(u, _.json({
 				"name": "web",
@@ -833,9 +834,9 @@ _.run(function () {
 
 			var repository = {
 				githubuserid : req.query.githubuserid,
-				odeskuserid : req.session.odesk.id,
-				githubname : req.session.github.name,
-				githubemail : req.session.github.email,
+				odeskuserid : req.user.odeskuserid,
+				githubname : req.user.first_name + ' ' + req.user.last_name,
+				githubemail : req.user.email,
 				repo : req.query.repo,
 				team : req.query.team,
 				html_url : 'https://github.com/' + req.query.githubuserid + '/' + req.query.repo
@@ -852,13 +853,13 @@ _.run(function () {
 
 			var githubuserid = req.user.githubuserid
 
-			var hooks = githubGetAll('https://api.github.com/repos/' + githubuserid + '/' + req.query.repo + '/hooks?access_token=' + req.session.github.accessToken)
+			var hooks = githubGetAll('https://api.github.com/repos/' + githubuserid + '/' + req.query.repo + '/hooks?access_token=' + req.user.githubaccessToken)
 
 			var funcs = []
 			_.each(hooks, function (hook) {
 				if (hook.config && hook.config.url.indexOf(process.env.HOST) == 0) {
 					funcs.push(function () {
-						_.wget('DELETE', 'https://api.github.com/repos/' + githubuserid + '/' + req.query.repo + '/hooks/' + hook.id + '?access_token=' + req.session.github.accessToken)
+						_.wget('DELETE', 'https://api.github.com/repos/' + githubuserid + '/' + req.query.repo + '/hooks/' + hook.id + '?access_token=' + req.user.githubaccessToken)
 					})
 				}
 			})
@@ -895,48 +896,34 @@ _.run(function () {
 	   }
 	}
 
-	function getOFromToken(token) {
+	function getO(user) {
 		var odesk = require('node-odesk-utils')
 		var o = new odesk(process.env.ODESK_API_KEY, process.env.ODESK_API_SECRET)
-		o.OAuth.accessToken = token.accessToken
-		o.OAuth.accessTokenSecret = token.tokenSecret
+		o.OAuth.accessToken = user.odeskaccessToken
+		o.OAuth.accessTokenSecret = user.odesktokenSecret
 		return o
 	}
 
-	function getO(req) {
-		return getOFromToken(req.session.odesk)
-	}
+	function getUser(odeskuserid) { return _.p(db.collection("users").findOne( { "odeskuserid" : odeskuserid }, _.p())) }
 
-	function getOByUserID(odeskuserid) {
-		return getOFromToken(_.p(db.collection("tokens").findOne( { "_id" : "odesk:" + odeskuserid }, _.p())))
-	}
-	
-	function getGitHubTokenByUserID(githubuserid) {
-		return _.p(db.collection("tokens").findOne( { "_id" : "github:" + githubuserid }, _.p())).accessToken
-	}
-
-	function getTeams(req) {
-		var t = _.p(getO(req).get('hr/v2/userroles', _.p())).userroles.userrole
+	function getTeams(user) {
+		var t = _.p(getO(user).get('hr/v2/userroles', _.p())).userroles.userrole
 		var teams = []
 		_.each(t, function(t) {
 			var u = t.permissions.permission
-			var utype = toType(u)
-
-			if (utype == 'string') {
-				if (u == 'manage_employment') {
-					teams.push(t)
-				}
-			} else if (utype == 'array') {
+			if (toType(u) == 'string') {
+				if (u == 'manage_employment') { teams.push(t) }
+			} else if (toType(u) == 'array') {
 				_.each(u, function(u) { if (u == 'manage_employment') { teams.push(t) } })
 			} else {}
 		})
 		return teams
 	}
 
-    function getoDeskJobs(req) {
+    function getoDeskJobs(user) {
 
 		// get the companies this user is in
-		var teams = getTeams(req)
+		var teams = getTeams(user)
 
 		// CHANGE IT SO THAT IT HANDLES USERS WITH PERMISSIONS IN SUB TEAMS BUT NOT THE PARENT TEAM
 		var j = []
@@ -945,11 +932,9 @@ _.run(function () {
 		// get all jobs the user has access to and put them in an array
 		_.each(teams, function(team) {
 			try {
-//				_.print('team = ' + team.company__name + ' > ' + team.team__name)
-				_.each(team.permissions.permission, function(p) {
-//					_.print('permissions = ' + p)
-				})
-				j = j.concat(_.p(getO(req).get('hr/v2/jobs?buyer_team__reference=' + team.team__reference + '&status=open&page=0;100', _.p())).jobs.job)
+//				_.each(team.permissions.permission, function(p) {})
+				j = j.concat(_.p(getO(user).get('hr/v2/jobs?buyer_team__reference=' + team.team__reference
+					+ '&status=open&page=0;100', _.p())).jobs.job)
 			} catch (e) { _.print('oDesk API failed to get jobs') }
 		})
 
@@ -987,19 +972,20 @@ _.run(function () {
 		return jobs
 	}
 
-    function getoDeskContracts(req) {
-		var teams = getTeams(req)
+    function getoDeskContracts(user) {
+		var teams = getTeams(user)
 		var contracts = []
 		var c = []
 
 		// get all jobs the user has access to and put them in an array
-		try { c = _.p(getO(req).get('hr/v2/engagements?status=active&page=0;200&field_set=extended&sort=created_time;D', _.p())).engagements.engagement } catch (e) { 
-			_.print('oDesk API failed to get contracts')
-		} // would sorting by time descending speed up the next loop?
+		try {
+			c = _.p(getO(user).get('hr/v2/engagements?status=active&page=0;200&field_set=extended&sort=created_time;D',
+			_.p())).engagements.engagement
+		} catch (e) {  _.print('oDesk API failed to get contracts') }
 
 		// get all the logged gitDesk jobs the user has access to and put them in an array
-		var gdj = getGitDeskJobs(req.session.odesk.id)
-		// instead of doing this, do the regex thing
+		var gdj = getGitDeskJobs(user.odeskuserid)
+		// insertstead of doing this, do the regex thing
 
 		_.each(c, function(c) {
 			var m = c.job__description.match(/github.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/)
